@@ -1,7 +1,7 @@
 {
   "dependencies": {
-    "com.naelstrof-raliv.mayo": {
-      "version": "file:com.naelstrof-raliv.mayo",
+    "com.naelstrof-raliv.fluid-rendering-for-games": {
+      "version": "file:com.naelstrof-raliv.fluid-rendering-for-games",
       "depth": 0,
       "source": "embedded",
       "dependencies": {}

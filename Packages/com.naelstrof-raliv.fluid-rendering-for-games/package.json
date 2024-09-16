@@ -1,0 +1,9 @@
+{
+  "name": "com.naelstrof-raliv.fluid-rendering-for-games",
+  "displayName": "Fluid Rendering For Games",
+  "version": "0.0.0",
+  "dependencies": {
+  },
+  "unity": "2022.3",
+  "description": "For rendering fluids!"
+}

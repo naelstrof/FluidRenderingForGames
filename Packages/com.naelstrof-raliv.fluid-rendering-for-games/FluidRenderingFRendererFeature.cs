@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
-public class LensFlareRendererFeature : ScriptableRendererFeature
+public class FluidRenderingRendererFeature : ScriptableRendererFeature
 {
     class LensFlarePass : ScriptableRenderPass
     {
