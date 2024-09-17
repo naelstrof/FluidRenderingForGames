@@ -13,7 +13,10 @@ MonoBehaviour:
   m_Name: FluidRenderingRendererFeature
   m_EditorClassIdentifier: 
   m_Active: 1
-  shader: {fileID: 4800000, guid: d0bc4719f6ec0ee438fc878e764d0581, type: 3}
+  shader: {fileID: -6465566751694194690, guid: 76c810fc9a512c84ab240a1591c3de9d, type: 3}
+  fluidVfxMask:
+    serializedVersion: 2
+    m_Bits: 64
 --- !u!114 &-1878332245247344467
 MonoBehaviour:
   m_ObjectHideFlags: 0
