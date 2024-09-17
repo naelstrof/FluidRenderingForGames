@@ -63,14 +63,20 @@ public class FluidPass : ScriptableRenderPass {
                 new ShaderTagId("SRPDefaultUnlit"),
                 new ShaderTagId("Forward")
             };
-            var desc = new RendererListDesc(shaderTags, renderingData.cullResults, cameraData.camera) {
-                //overrideMaterial = overrideMaterial,
-                renderQueueRange = RenderQueueRange.all,
-                sortingCriteria = renderingData.cameraData.defaultOpaqueSortFlags,
-                layerMask = vfxMask,
-            };
-            var rendererList = context.CreateRendererList(desc);
-            cmd.DrawRendererList(rendererList);
+            
+            if (cameraData.camera.TryGetCullingParameters(out var cullingParameters)) {
+                cullingParameters.cullingMask = (uint)vfxMask.value;
+                var cullingResults = context.Cull(ref cullingParameters);
+                var desc = new RendererListDesc(shaderTags, cullingResults, cameraData.camera) {
+                    overrideMaterial = overrideMaterial,
+                    renderQueueRange = RenderQueueRange.all,
+                    sortingCriteria = renderingData.cameraData.defaultOpaqueSortFlags,
+                    layerMask = vfxMask,
+                };
+                var rendererList = context.CreateRendererList(desc);
+                cmd.DrawRendererList(rendererList);
+            }
+
             Blitter.BlitCameraTexture(cmd, m_FluidBuffer, m_CameraColorTarget, material, 0);
         }
         context.ExecuteCommandBuffer(cmd);
