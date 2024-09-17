@@ -14,9 +14,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Active: 1
   shader: {fileID: -6465566751694194690, guid: 76c810fc9a512c84ab240a1591c3de9d, type: 3}
-  fluidVfxMask:
+  overrideMaterial: {fileID: 2100000, guid: c43c3f811b42f5c4c964e2f7a70ba0ae, type: 2}
+  fluidVFXMask:
     serializedVersion: 2
     m_Bits: 64
+  fluidSplatMask:
+    serializedVersion: 2
+    m_Bits: 128
 --- !u!114 &-1878332245247344467
 MonoBehaviour:
   m_ObjectHideFlags: 0
