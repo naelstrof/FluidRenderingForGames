@@ -6,7 +6,8 @@ using UnityEngine.Rendering.Universal;
 public class FluidPass : ScriptableRenderPass {
     private Material material;
     private Material overrideMaterial;
-    private LayerMask vfxMask;
+    private LayerMask fluidVFXMask;
+    private LayerMask fluidSplatMask;
     
     private ProfilingSampler m_ProfilingSampler = new ProfilingSampler("FluidRendering_RenderFeature");
     
@@ -14,11 +15,12 @@ public class FluidPass : ScriptableRenderPass {
     private RTHandle m_CameraDepthTarget;
     private RTHandle m_FluidBuffer;
     
-    public FluidPass(RenderPassEvent renderPassEvent, Material material, LayerMask vfxMask, Material overrideMaterial) {
+    public FluidPass(RenderPassEvent renderPassEvent, Material material, LayerMask fluidVFXMask, LayerMask fluidSplatMask, Material overrideMaterial) {
         this.material = material;
         this.overrideMaterial = overrideMaterial;
         this.renderPassEvent = renderPassEvent;
-        this.vfxMask = vfxMask;
+        this.fluidVFXMask = fluidVFXMask;
+        this.fluidSplatMask = fluidSplatMask;
     }
 
     public void SetTarget(RTHandle colorHandle, RTHandle depthHandle) {
@@ -56,25 +58,37 @@ public class FluidPass : ScriptableRenderPass {
             CoreUtils.SetRenderTarget(cmd, m_FluidBuffer, m_CameraDepthTarget);
             CoreUtils.ClearRenderTarget(cmd, ClearFlag.Color, Color.black);
             var shaderTags = new ShaderTagId[] {
-                new ShaderTagId("DepthOnly"),
-                new ShaderTagId("UniversalForward"),
-                new ShaderTagId("UniversalForwardOnly"),
-                new ShaderTagId("LightweightForward"),
-                new ShaderTagId("SRPDefaultUnlit"),
-                new ShaderTagId("Forward")
+                new("DepthOnly"),
+                new("UniversalForward"),
+                new("UniversalForwardOnly"),
+                new("LightweightForward"),
+                new("SRPDefaultUnlit"),
+                new("Forward")
             };
             
             if (cameraData.camera.TryGetCullingParameters(out var cullingParameters)) {
-                cullingParameters.cullingMask = (uint)vfxMask.value;
-                var cullingResults = context.Cull(ref cullingParameters);
-                var desc = new RendererListDesc(shaderTags, cullingResults, cameraData.camera) {
-                    overrideMaterial = overrideMaterial,
-                    renderQueueRange = RenderQueueRange.all,
-                    sortingCriteria = renderingData.cameraData.defaultOpaqueSortFlags,
-                    layerMask = vfxMask,
-                };
-                var rendererList = context.CreateRendererList(desc);
-                cmd.DrawRendererList(rendererList);
+                { // FLUID SPLAT PASS
+                    var desc = new RendererListDesc(shaderTags, renderingData.cullResults, cameraData.camera) {
+                        overrideMaterial = overrideMaterial,
+                        renderQueueRange = RenderQueueRange.all,
+                        sortingCriteria = renderingData.cameraData.defaultOpaqueSortFlags,
+                        layerMask = fluidSplatMask,
+                    };
+                    var rendererList = context.CreateRendererList(desc);
+                    cmd.DrawRendererList(rendererList);
+                }
+
+                { // FLUID VFX PASS
+                    cullingParameters.cullingMask = (uint)fluidVFXMask.value;
+                    var cullingResults = context.Cull(ref cullingParameters);
+                    var desc = new RendererListDesc(shaderTags, cullingResults, cameraData.camera) {
+                        renderQueueRange = RenderQueueRange.all,
+                        sortingCriteria = renderingData.cameraData.defaultOpaqueSortFlags,
+                        layerMask = fluidVFXMask,
+                    };
+                    var rendererList = context.CreateRendererList(desc);
+                    cmd.DrawRendererList(rendererList);
+                }
             }
 
             Blitter.BlitCameraTexture(cmd, m_FluidBuffer, m_CameraColorTarget, material, 0);
