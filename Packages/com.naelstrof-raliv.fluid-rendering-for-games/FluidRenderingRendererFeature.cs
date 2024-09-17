@@ -7,6 +7,7 @@ using UnityEditor;
 
 public class FluidRenderingRendererFeature : ScriptableRendererFeature {
     [SerializeField] private Shader shader;
+    [SerializeField] private LayerMask fluidVfxMask;
     private Material _material;
     private FluidPass _fluidPass;
     
@@ -15,7 +16,7 @@ public class FluidRenderingRendererFeature : ScriptableRendererFeature {
             return;
         }
         _material = CoreUtils.CreateEngineMaterial(shader);
-        _fluidPass = new FluidPass(RenderPassEvent.BeforeRenderingPostProcessing, _material);
+        _fluidPass = new FluidPass(RenderPassEvent.BeforeRenderingPostProcessing, _material, fluidVfxMask);
     }
 
     public override void SetupRenderPasses(ScriptableRenderer renderer, in RenderingData renderingData) {
