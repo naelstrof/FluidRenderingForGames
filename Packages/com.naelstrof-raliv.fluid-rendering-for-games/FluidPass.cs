@@ -5,21 +5,25 @@ using UnityEngine.Rendering.Universal;
 
 public class FluidPass : ScriptableRenderPass {
     private Material material;
+    private Material overrideMaterial;
     private LayerMask vfxMask;
     
     private ProfilingSampler m_ProfilingSampler = new ProfilingSampler("FluidRendering_RenderFeature");
     
     private RTHandle m_CameraColorTarget;
+    private RTHandle m_CameraDepthTarget;
     private RTHandle m_FluidBuffer;
     
-    public FluidPass(RenderPassEvent renderPassEvent, Material material, LayerMask vfxMask) {
+    public FluidPass(RenderPassEvent renderPassEvent, Material material, LayerMask vfxMask, Material overrideMaterial) {
         this.material = material;
+        this.overrideMaterial = overrideMaterial;
         this.renderPassEvent = renderPassEvent;
         this.vfxMask = vfxMask;
     }
 
-    public void SetTarget(RTHandle colorHandle) {
+    public void SetTarget(RTHandle colorHandle, RTHandle depthHandle) {
         m_CameraColorTarget = colorHandle;
+        m_CameraDepthTarget = depthHandle;
     }
 
     public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData) {
@@ -33,7 +37,7 @@ public class FluidPass : ScriptableRenderPass {
     
     void ReAllocate(RenderTextureDescriptor desc) {
         desc.msaaSamples = 1;
-        desc.depthBufferBits = (int)DepthBits.Depth32;
+        desc.depthBufferBits = (int)DepthBits.None;
         //desc.colorFormat = RenderTextureFormat.Default;
         RenderingUtils.ReAllocateIfNeeded(ref m_FluidBuffer, desc, name: "_FluidBuffer");
     }
@@ -49,26 +53,24 @@ public class FluidPass : ScriptableRenderPass {
         
         CommandBuffer cmd = CommandBufferPool.Get();
         using (new ProfilingScope(cmd, m_ProfilingSampler)) {
-            CoreUtils.SetRenderTarget(cmd, m_FluidBuffer);
-            CoreUtils.ClearRenderTarget(cmd, ClearFlag.All, Color.black);
-            if (cameraData.camera.TryGetCullingParameters(out var cullingParameters)) {
-                //cullingParameters.cullingMask = (uint)vfxMask.value;
-                var shaderTags = new ShaderTagId[] {
-                    new ShaderTagId("DepthOnly"),
-                    new ShaderTagId("UniversalForward"),
-                    new ShaderTagId("UniversalForwardOnly"),
-                    new ShaderTagId("LightweightForward"),
-                    new ShaderTagId("SRPDefaultUnlit"),
-                    new ShaderTagId("Forward")
-                };
-                //ShaderTagId shaderTagID = new ShaderTagId("UniversalForward");
-                var cullingResults = context.Cull(ref cullingParameters);
-                var desc = new RendererListDesc(shaderTags, cullingResults, cameraData.camera) {
-                    renderQueueRange = RenderQueueRange.all,
-                };
-                var rendererList = context.CreateRendererList(desc);
-                cmd.DrawRendererList(rendererList);
-            }
+            CoreUtils.SetRenderTarget(cmd, m_FluidBuffer, m_CameraDepthTarget);
+            CoreUtils.ClearRenderTarget(cmd, ClearFlag.Color, Color.black);
+            var shaderTags = new ShaderTagId[] {
+                new ShaderTagId("DepthOnly"),
+                new ShaderTagId("UniversalForward"),
+                new ShaderTagId("UniversalForwardOnly"),
+                new ShaderTagId("LightweightForward"),
+                new ShaderTagId("SRPDefaultUnlit"),
+                new ShaderTagId("Forward")
+            };
+            var desc = new RendererListDesc(shaderTags, renderingData.cullResults, cameraData.camera) {
+                //overrideMaterial = overrideMaterial,
+                renderQueueRange = RenderQueueRange.all,
+                sortingCriteria = renderingData.cameraData.defaultOpaqueSortFlags,
+                layerMask = vfxMask,
+            };
+            var rendererList = context.CreateRendererList(desc);
+            cmd.DrawRendererList(rendererList);
             Blitter.BlitCameraTexture(cmd, m_FluidBuffer, m_CameraColorTarget, material, 0);
         }
         context.ExecuteCommandBuffer(cmd);

@@ -7,6 +7,7 @@ using UnityEditor;
 
 public class FluidRenderingRendererFeature : ScriptableRendererFeature {
     [SerializeField] private Shader shader;
+    [SerializeField] private Material overrideMaterial;
     [SerializeField] private LayerMask fluidVfxMask;
     private Material _material;
     private FluidPass _fluidPass;
@@ -16,7 +17,7 @@ public class FluidRenderingRendererFeature : ScriptableRendererFeature {
             return;
         }
         _material = CoreUtils.CreateEngineMaterial(shader);
-        _fluidPass = new FluidPass(RenderPassEvent.BeforeRenderingPostProcessing, _material, fluidVfxMask);
+        _fluidPass = new FluidPass(RenderPassEvent.BeforeRenderingPostProcessing, _material, fluidVfxMask, overrideMaterial);
     }
 
     public override void SetupRenderPasses(ScriptableRenderer renderer, in RenderingData renderingData) {
@@ -24,7 +25,7 @@ public class FluidRenderingRendererFeature : ScriptableRendererFeature {
             return;
         }
         _fluidPass.ConfigureInput(ScriptableRenderPassInput.Color);
-        _fluidPass.SetTarget(renderer.cameraColorTargetHandle);
+        _fluidPass.SetTarget(renderer.cameraColorTargetHandle, renderer.cameraDepthTargetHandle);
     }
 
     public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData) {
