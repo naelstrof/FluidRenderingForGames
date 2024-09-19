@@ -9,6 +9,7 @@ using UnityEditor;
 public class FluidRenderingRendererFeature : ScriptableRendererFeature {
     [SerializeField] private Shader shader;
     [SerializeField] private Shader overrideShader;
+    [SerializeField] private Texture fluidMatcap;
     [SerializeField] private LayerMask fluidVFXMask;
     [SerializeField] private LayerMask fluidSplatMask;
     private Material _material;
@@ -19,7 +20,7 @@ public class FluidRenderingRendererFeature : ScriptableRendererFeature {
             return;
         }
         _material = CoreUtils.CreateEngineMaterial(shader);
-        _fluidPass = new FluidPass(RenderPassEvent.BeforeRenderingPostProcessing, _material, fluidVFXMask, fluidSplatMask, overrideShader);
+        _fluidPass = new FluidPass(RenderPassEvent.BeforeRenderingPostProcessing, _material, fluidVFXMask, fluidSplatMask, overrideShader, fluidMatcap);
     }
 
     public override void SetupRenderPasses(ScriptableRenderer renderer, in RenderingData renderingData) {
