@@ -26,7 +26,7 @@ public class FluidEmitter : MonoBehaviour {
     }
 
     private void FixedUpdate() {
-        int subParticles = 1 + (int)(_strength * 5);
+        int subParticles = 1 + (int)(_strength * 8);
         for (int i = 0; i < subParticles; i++) {
             _fluidParticleSystem.SpawnParticle(
                 transform.position, 

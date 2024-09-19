@@ -6,6 +6,7 @@ using UnityEngine.Rendering.Universal;
 public class FluidPass : ScriptableRenderPass {
     private Material material;
     private Shader overrideShader;
+    private Texture fluidMatcap;
     private LayerMask fluidVFXMask;
     private LayerMask fluidSplatMask;
     
@@ -15,12 +16,20 @@ public class FluidPass : ScriptableRenderPass {
     private RTHandle m_CameraDepthTarget;
     private RTHandle m_FluidBuffer;
     
-    public FluidPass(RenderPassEvent renderPassEvent, Material material, LayerMask fluidVFXMask, LayerMask fluidSplatMask, Shader overrideShader) {
+    public FluidPass(
+        RenderPassEvent renderPassEvent, 
+        Material material, 
+        LayerMask fluidVFXMask, 
+        LayerMask fluidSplatMask, 
+        Shader overrideShader,
+        Texture fluidMatcap
+        ) {
         this.material = material;
         this.overrideShader = overrideShader;
         this.renderPassEvent = renderPassEvent;
         this.fluidVFXMask = fluidVFXMask;
         this.fluidSplatMask = fluidSplatMask;
+        this.fluidMatcap = fluidMatcap;
     }
 
     public void SetTarget(RTHandle colorHandle, RTHandle depthHandle) {
@@ -64,7 +73,7 @@ public class FluidPass : ScriptableRenderPass {
             };
             
             if (cameraData.camera.TryGetCullingParameters(out var cullingParameters)) {
-                
+                Shader.SetGlobalTexture("_FluidMatcap", fluidMatcap);
                 CoreUtils.SetRenderTarget(cmd, m_FluidBuffer, m_CameraDepthTarget);
                 CoreUtils.ClearRenderTarget(cmd, ClearFlag.Color, Color.black);
                 { // FLUID VFX PASS

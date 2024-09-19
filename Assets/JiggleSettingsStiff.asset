@@ -12,9 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0997643438057254c98e228266a7890f, type: 3}
   m_Name: JiggleSettingsStiff
   m_EditorClassIdentifier: 
-  gravityMultiplier: 0
-  friction: 0.039
-  angleElasticity: 0.421
+  gravityMultiplier: 0.24
+  friction: 0.163
+  angleElasticity: 0.54
   blend: 1
   airDrag: 0
   lengthElasticity: 0.852

@@ -54,20 +54,30 @@ public class FluidParticleSystem {
     
     public void SpawnParticle(Vector3 position, Vector3 previousPosition, Vector3 forward, Vector3 previousForward, float strength, float previousStrength, float subT = 0f) {
         var subTime = Time.timeSinceLevelLoad - Time.deltaTime * subT;
-        var noiseFrequency = 6f;
+        var noiseFrequency = 4f;
         var velocityNoise = new Vector3(
             1f+Mathf.PerlinNoise(subTime*noiseFrequency*-1.39f, subTime*noiseFrequency*3.33f)*0.3f-0.2f,
             1f+Mathf.PerlinNoise(subTime*noiseFrequency*2.19f, subTime*noiseFrequency*-2.11f)*0.3f-0.2f,
             1f+Mathf.PerlinNoise(subTime*noiseFrequency*0.74f, subTime*noiseFrequency*0.91f)*0.3f-0.2f
-            );
+        );
+        noiseFrequency = 12f;
+        velocityNoise += new Vector3(
+            1f+Mathf.PerlinNoise(subTime*noiseFrequency*-1.39f, subTime*noiseFrequency*3.33f)*0.3f-0.2f,
+            1f+Mathf.PerlinNoise(subTime*noiseFrequency*2.19f, subTime*noiseFrequency*-2.11f)*0.3f-0.2f,
+            1f+Mathf.PerlinNoise(subTime*noiseFrequency*0.74f, subTime*noiseFrequency*0.91f)*0.3f-0.2f
+        ) * 0.3f;
         var velocity = Vector3.Lerp(forward, previousForward, subT);
         velocity.Scale(velocityNoise);
+        noiseFrequency = 4f;
+        velocity *= 1f + Mathf.PerlinNoise(subTime * noiseFrequency * -1.39f, subTime * noiseFrequency * 3.33f) * 0.3f -
+                    0.2f;
+        velocity = velocity * Mathf.Lerp(strength, previousStrength, subT);
         _particles[_particleSpawnIndex] = new Particle {
-            position = Vector3.Lerp(position, previousPosition, subT),
-            volume = strength*velocityNoise.x*0.2f
+            position = Vector3.Lerp(position, previousPosition, subT) - velocity * Time.deltaTime,
+            volume = strength*(1f-velocityNoise.x*0.5f)
         };
         _particlePhysics[_particleSpawnIndex] = new ParticlePhysics {
-            velocity = velocity * Mathf.Lerp(strength, previousStrength, subT),
+            velocity = velocity,
         };
         _particles[_particleSpawnIndex].position += _particlePhysics[_particleSpawnIndex].velocity * Time.deltaTime * subT;
         _particlePhysics[_particleSpawnIndex].velocity += Physics.gravity * Time.deltaTime * subT;

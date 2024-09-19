@@ -8,6 +8,7 @@ using UnityEngine.VFX;
 
 public class TestWiggler : MonoBehaviour {
 
+    [SerializeField] private AnimationCurve strengthCurve; 
     [SerializeField] private JiggleSettingsBlend jiggleBlend; 
     private Quaternion startRotation;
     private float pulse;
@@ -17,12 +18,11 @@ public class TestWiggler : MonoBehaviour {
     }
 
     void Update() {
-        pulse = Mathf.Sin(Time.timeSinceLevelLoad * 6f) * 0.5f + 0.5f;
-        pulse += Mathf.PerlinNoise(Time.timeSinceLevelLoad * -1.935f, Time.timeSinceLevelLoad * 0.154f) * 0.2f;
-        pulse *= 6f;
+        pulse = strengthCurve.Evaluate(Mathf.Repeat(Time.timeSinceLevelLoad*1f, 1f));
+        pulse *= 4f;
         GetComponentInChildren<FluidEmitter>().SetStrength(pulse);
         transform.rotation = startRotation * Quaternion.Euler(0f, 30f * Mathf.PerlinNoise(Time.timeSinceLevelLoad * 0.8f, -Time.timeSinceLevelLoad * 1.11f), 0f);
-        jiggleBlend.normalizedBlend = Mathf.Clamp01(pulse);
+        jiggleBlend.normalizedBlend = Mathf.Clamp01(strengthCurve.Evaluate(Mathf.Repeat((Time.timeSinceLevelLoad+0.2f)*1f, 1f)));
     }
 
 }

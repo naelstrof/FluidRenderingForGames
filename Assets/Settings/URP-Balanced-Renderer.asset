@@ -16,6 +16,7 @@ MonoBehaviour:
   shader: {fileID: -6465566751694194690, guid: 76c810fc9a512c84ab240a1591c3de9d, type: 3}
   overrideShader: {fileID: -6465566751694194690, guid: 603cf1081fef5bd4c884a84cc6328c46,
     type: 3}
+  fluidMatcap: {fileID: 2800000, guid: b4f9122160d0c5343a8feb50a0dc201e, type: 3}
   fluidVFXMask:
     serializedVersion: 2
     m_Bits: 64

@@ -172,7 +172,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!65 &302754317
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -966,6 +966,57 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d2d4e4b15ea81b2448fe329e071a79ce, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  strengthCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0.011783838
+      inSlope: 0.019596038
+      outSlope: 0.019596038
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 1
+    - serializedVersion: 3
+      time: 0.018346228
+      value: 0.7570867
+      inSlope: 5.598653
+      outSlope: 5.598653
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.4256561
+    - serializedVersion: 3
+      time: 0.1528846
+      value: 0.9932551
+      inSlope: 0.13984737
+      outSlope: 0.13984737
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.26054907
+    - serializedVersion: 3
+      time: 0.42291805
+      value: 0.8061754
+      inSlope: -1.380664
+      outSlope: -1.380664
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.0993734
+    - serializedVersion: 3
+      time: 1
+      value: 0.009433985
+      inSlope: 0.0065083
+      outSlope: 0.0065083
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.82748044
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
   jiggleBlend: {fileID: 11400000, guid: bf8792694fbf6854dbc782ee9fab03e6, type: 2}
 --- !u!1 &1306229100
 GameObject:
