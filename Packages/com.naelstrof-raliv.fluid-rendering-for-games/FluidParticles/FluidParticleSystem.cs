@@ -1,0 +1,149 @@
+using System;
+using System.Collections.Generic;
+using System.Runtime.InteropServices;
+using UnityEngine;
+using UnityEngine.Rendering;
+using Random = UnityEngine.Random;
+
+public class FluidParticleSystem {
+    
+    const int particleCountMax = 3000;
+
+    //[SerializeField] private LightProbeProxyVolume lightProbeVolume;
+
+    [Serializable]
+    private struct Particle {
+        public int index;
+        public Vector3 position;
+        public float volume;
+    }
+
+    private struct ParticlePhysics {
+        public Vector3 velocity;
+    }
+
+    private Particle[] _particles;
+    private ParticlePhysics[] _particlePhysics;
+    private Material _material;
+    private GraphicsBuffer _particleBuffer;
+    private MaterialPropertyBlock _materialPropertyBlock;
+    private RenderParams _renderParams;
+    private int _particleSpawnIndex;
+    private float strength;
+    
+    private GraphicsBuffer meshTriangles;
+    private GraphicsBuffer meshVertices;
+    private GraphicsBuffer meshNormals;
+    private GraphicsBuffer meshUVs;
+
+    public FluidParticleSystem(Material material) {
+        _material = material;
+        _particles = new Particle[particleCountMax];
+        _particlePhysics = new ParticlePhysics[particleCountMax];
+        Initialize();
+    }
+    
+    public void Cleanup() {
+        _particleBuffer?.Release();
+        _particleBuffer = null;
+        meshTriangles?.Release();
+        meshVertices?.Release();
+        meshNormals?.Release();
+        meshUVs?.Release();
+    }
+    
+    public void SpawnParticle(Vector3 position, Vector3 previousPosition, Vector3 forward, Vector3 previousForward, float strength, float previousStrength, float subT = 0f) {
+        var subTime = Time.timeSinceLevelLoad - Time.deltaTime * subT;
+        var noiseFrequency = 6f;
+        var velocityNoise = new Vector3(
+            1f+Mathf.PerlinNoise(subTime*noiseFrequency*-1.39f, subTime*noiseFrequency*3.33f)*0.3f-0.2f,
+            1f+Mathf.PerlinNoise(subTime*noiseFrequency*2.19f, subTime*noiseFrequency*-2.11f)*0.3f-0.2f,
+            1f+Mathf.PerlinNoise(subTime*noiseFrequency*0.74f, subTime*noiseFrequency*0.91f)*0.3f-0.2f
+            );
+        var velocity = Vector3.Lerp(forward, previousForward, subT);
+        velocity.Scale(velocityNoise);
+        _particles[_particleSpawnIndex] = new Particle {
+            position = Vector3.Lerp(position, previousPosition, subT),
+            volume = strength*velocityNoise.x*0.2f
+        };
+        _particlePhysics[_particleSpawnIndex] = new ParticlePhysics {
+            velocity = velocity * Mathf.Lerp(strength, previousStrength, subT),
+        };
+        _particles[_particleSpawnIndex].position += _particlePhysics[_particleSpawnIndex].velocity * Time.deltaTime * subT;
+        _particlePhysics[_particleSpawnIndex].velocity += Physics.gravity * Time.deltaTime * subT;
+        _particleSpawnIndex = (_particleSpawnIndex + 1) % _particles.Length;
+    }
+
+    public void FixedUpdate() {
+        for (var index = 0; index < _particles.Length; index++) {
+            _particles[index].position += _particlePhysics[index].velocity * Time.deltaTime;
+            // TODO: can fade based on proximity to being respawned
+            //_particles[index].volume = Mathf.Max(0f, _particles[index].volume-Time.deltaTime*0.3f);
+            _particlePhysics[index].velocity += Physics.gravity * Time.deltaTime;
+        }
+    }
+
+    void Initialize() {
+        // TODO: staticly initialize or separate out
+        GenerateMeshData();
+        _materialPropertyBlock ??= new MaterialPropertyBlock();
+        _materialPropertyBlock.SetBuffer("_ParticleTriangles", meshTriangles);
+        _materialPropertyBlock.SetBuffer("_ParticlePositions", meshVertices);
+        _materialPropertyBlock.SetBuffer("_ParticleNormals", meshNormals);
+        _materialPropertyBlock.SetBuffer("_ParticleUVs", meshUVs);
+        _materialPropertyBlock.SetInt("_ParticleCount", particleCountMax);
+        //_materialPropertyBlock.SetInt("_ParticleIndexCount", 4);
+        if (_particleBuffer == null || !_particleBuffer.IsValid()) {
+            _particleBuffer?.Release();
+            _particleBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, particleCountMax, Marshal.SizeOf<Particle>());
+        }
+        int i = 0;
+        //if (lightProbeVolume == null) {
+        //    lightProbeVolume = new GameObject("FlockingLightProbeVolume", typeof(LightProbeProxyVolume)).GetComponent<LightProbeProxyVolume>();
+        //}
+
+        _renderParams = new RenderParams(_material) {
+            // TODO: FIX BOUNDS
+            worldBounds = new Bounds(Vector3.zero, Vector3.one*1000f),
+            //material = foliagePack.GetMaterial(),
+            matProps = _materialPropertyBlock,
+            //lightProbeUsage = LightProbeUsage.UseProxyVolume,
+            //reflectionProbeUsage = ReflectionProbeUsage.BlendProbes,
+            //lightProbeProxyVolume = lightProbeVolume,
+            layer = LayerMask.NameToLayer("FluidVFX")
+        };
+        _materialPropertyBlock.SetBuffer("_Particle", _particleBuffer);
+    }
+
+    public void Render() {
+        if (_renderParams.matProps == null) {
+            return;
+        }
+        _particleBuffer.SetData(_particles);
+        Graphics.RenderPrimitives(_renderParams, MeshTopology.Triangles, 6, _particles.Length);
+    }
+
+    public void GenerateMeshData() {
+        var vertices = new Vector3[] {
+            Vector3.zero,
+            Vector3.zero,
+            Vector3.zero,
+            Vector3.zero
+        };
+        var normals = new Vector3[] {Vector3.forward, Vector3.forward, Vector3.forward,Vector3.forward};
+        var triangles = new int[] {0, 1, 2, 0, 2, 3};
+        var uvs = new Vector2[] {Vector2.up, Vector2.up + Vector2.right, Vector2.right, Vector2.zero};
+        meshVertices = new GraphicsBuffer(GraphicsBuffer.Target.Structured, vertices.Length, Marshal.SizeOf<Vector3>());
+        meshVertices.SetData(vertices);
+        meshNormals = new GraphicsBuffer(GraphicsBuffer.Target.Structured, normals.Length, Marshal.SizeOf<Vector3>());
+        meshNormals.SetData(normals);
+        meshTriangles = new GraphicsBuffer(GraphicsBuffer.Target.Structured, triangles.Length, Marshal.SizeOf<int>());
+        meshTriangles.SetData(triangles);
+        meshUVs = new GraphicsBuffer(GraphicsBuffer.Target.Structured, uvs.Length, Marshal.SizeOf<Vector2>());
+        meshUVs.SetData(uvs);
+    }
+
+    public void OnDrawGizmos() {
+    }
+
+}

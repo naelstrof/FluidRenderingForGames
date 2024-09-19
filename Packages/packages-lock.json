@@ -6,6 +6,13 @@
       "source": "embedded",
       "dependencies": {}
     },
+    "com.naelstrof.jigglephysics": {
+      "version": "https://github.com/naelstrof/UnityJigglePhysics.git#upm",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "7ba45cc1603eb95a0d1f4f31fdcbe6b787cf3e7b"
+    },
     "com.unity.burst": {
       "version": "1.8.15",
       "depth": 1,

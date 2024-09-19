@@ -1,0 +1,28 @@
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using JigglePhysics;
+using Unity.Mathematics;
+using UnityEngine;
+using UnityEngine.VFX;
+
+public class TestWiggler : MonoBehaviour {
+
+    [SerializeField] private JiggleSettingsBlend jiggleBlend; 
+    private Quaternion startRotation;
+    private float pulse;
+
+    private void Awake() {
+        startRotation = transform.rotation;
+    }
+
+    void Update() {
+        pulse = Mathf.Sin(Time.timeSinceLevelLoad * 6f) * 0.5f + 0.5f;
+        pulse += Mathf.PerlinNoise(Time.timeSinceLevelLoad * -1.935f, Time.timeSinceLevelLoad * 0.154f) * 0.2f;
+        pulse *= 6f;
+        GetComponentInChildren<FluidEmitter>().SetStrength(pulse);
+        transform.rotation = startRotation * Quaternion.Euler(0f, 30f * Mathf.PerlinNoise(Time.timeSinceLevelLoad * 0.8f, -Time.timeSinceLevelLoad * 1.11f), 0f);
+        jiggleBlend.normalizedBlend = Mathf.Clamp01(pulse);
+    }
+
+}
