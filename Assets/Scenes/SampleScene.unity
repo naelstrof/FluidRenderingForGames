@@ -355,7 +355,7 @@ GameObject:
   - component: {fileID: 327835833}
   - component: {fileID: 327835835}
   - component: {fileID: 327835834}
-  m_Layer: 7
+  m_Layer: 0
   m_Name: Cube (1)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -394,7 +394,7 @@ MeshRenderer:
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
-  m_RenderingLayerMask: 1
+  m_RenderingLayerMask: 513
   m_RendererPriority: 0
   m_Materials:
   - {fileID: 2100000, guid: 9afa3e79719cd114c9154efa8f526763, type: 2}
@@ -500,7 +500,7 @@ GameObject:
   - component: {fileID: 751078731}
   - component: {fileID: 751078734}
   - component: {fileID: 751078733}
-  m_Layer: 7
+  m_Layer: 0
   m_Name: Cube (1)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -539,7 +539,7 @@ MeshRenderer:
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
-  m_RenderingLayerMask: 1
+  m_RenderingLayerMask: 513
   m_RendererPriority: 0
   m_Materials:
   - {fileID: 2100000, guid: 9afa3e79719cd114c9154efa8f526763, type: 2}
@@ -1198,7 +1198,7 @@ GameObject:
   - component: {fileID: 1323698388}
   - component: {fileID: 1323698390}
   - component: {fileID: 1323698389}
-  m_Layer: 7
+  m_Layer: 0
   m_Name: Cube (1)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1237,7 +1237,7 @@ MeshRenderer:
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
-  m_RenderingLayerMask: 1
+  m_RenderingLayerMask: 513
   m_RendererPriority: 0
   m_Materials:
   - {fileID: 2100000, guid: 9afa3e79719cd114c9154efa8f526763, type: 2}
@@ -1608,7 +1608,7 @@ GameObject:
   - component: {fileID: 1615739261}
   - component: {fileID: 1615739263}
   - component: {fileID: 1615739262}
-  m_Layer: 7
+  m_Layer: 0
   m_Name: Cube (1)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1647,7 +1647,7 @@ MeshRenderer:
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
-  m_RenderingLayerMask: 1
+  m_RenderingLayerMask: 513
   m_RendererPriority: 0
   m_Materials:
   - {fileID: 2100000, guid: 9afa3e79719cd114c9154efa8f526763, type: 2}
@@ -1735,7 +1735,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1664735594}
   - component: {fileID: 1664735593}
-  m_Layer: 6
+  m_Layer: 0
   m_Name: TestParticles
   m_TagString: Untagged
   m_Icon: {fileID: 0}
