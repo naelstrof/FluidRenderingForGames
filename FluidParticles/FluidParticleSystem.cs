@@ -93,6 +93,7 @@ public class FluidParticleSystem {
         for (var index = 0; index < _particles.Length; index++) {
             UpdateParticle(index);
         }
+        _particleBuffer.SetData(_particles);
     }
 
     void UpdateParticle(int index) {
@@ -149,7 +150,7 @@ public class FluidParticleSystem {
         if (_renderParams.matProps == null) {
             return;
         }
-        _particleBuffer.SetData(_particles);
+
         Graphics.RenderPrimitives(_renderParams, MeshTopology.Triangles, 6, _particles.Length);
     }
 
