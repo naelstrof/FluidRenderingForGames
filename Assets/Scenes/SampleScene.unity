@@ -1062,7 +1062,7 @@ GameObject:
   - component: {fileID: 1268358671}
   - component: {fileID: 1268358672}
   m_Layer: 0
-  m_Name: GameObject
+  m_Name: TestWiggler
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1773,6 +1773,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   particleMaterial: {fileID: 2100000, guid: 1ffacd69c2e9ceb4d9a1f7aafcb3a486, type: 2}
+  fluidParticleSystemSettings: {fileID: 11400000, guid: 09383ce6559dfb6498ddf2cf1699d6cc,
+    type: 2}
 --- !u!4 &1664735594
 Transform:
   m_ObjectHideFlags: 0

@@ -52,7 +52,8 @@ public class FluidPass : ScriptableRenderPass {
     void ReAllocate(RenderTextureDescriptor desc) {
         desc.msaaSamples = 1;
         desc.depthBufferBits = (int)DepthBits.None;
-        desc.colorFormat = RenderTextureFormat.Default;
+        desc.colorFormat = RenderTextureFormat.RFloat;
+        desc.sRGB = false;
         RenderingUtils.ReAllocateIfNeeded(ref m_FluidBuffer, desc, name: "_FluidBuffer");
     }
 
