@@ -128,19 +128,25 @@ public class FluidParticleSystem {
             _particleBuffer?.Release();
             _particleBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, particleCountMax, Marshal.SizeOf<Particle>());
         }
-        int i = 0;
         //if (lightProbeVolume == null) {
         //    lightProbeVolume = new GameObject("FlockingLightProbeVolume", typeof(LightProbeProxyVolume)).GetComponent<LightProbeProxyVolume>();
         //}
 
+        uint fluidVFXMask = 0;
+        var maskNames = GraphicsSettings.currentRenderPipeline.renderingLayerMaskNames;
+        for (int i = 0; i < maskNames.Length; i++) {
+            if (maskNames[i] == "FluidVFX") {
+                fluidVFXMask = (uint)(1 << i);
+            }
+        }
         _renderParams = new RenderParams(_material) {
             // TODO: FIX BOUNDS
             worldBounds = new Bounds(Vector3.zero, Vector3.one*1000f),
-            //material = foliagePack.GetMaterial(),
             matProps = _materialPropertyBlock,
             //lightProbeUsage = LightProbeUsage.UseProxyVolume,
             //reflectionProbeUsage = ReflectionProbeUsage.BlendProbes,
             //lightProbeProxyVolume = lightProbeVolume,
+            renderingLayerMask = fluidVFXMask,
             layer = LayerMask.NameToLayer("FluidVFX")
         };
         _materialPropertyBlock.SetBuffer("_Particle", _particleBuffer);
@@ -154,7 +160,7 @@ public class FluidParticleSystem {
         Graphics.RenderPrimitives(_renderParams, MeshTopology.Triangles, 6, _particles.Length);
     }
 
-    public void GenerateMeshData() {
+    private void GenerateMeshData() {
         var vertices = new Vector3[] {
             Vector3.zero,
             Vector3.zero,

@@ -7,8 +7,9 @@ public class FluidPass : ScriptableRenderPass {
     private Material material;
     private Shader overrideShader;
     private Texture fluidMatcap;
-    private LayerMask fluidVFXMask;
-    private LayerMask fluidSplatMask;
+    private uint fluidVFXMask;
+    private uint fluidSplatMask;
+    private LayerMask fluidVFXLayerMask;
     
     private ProfilingSampler m_ProfilingSampler = new ProfilingSampler("FluidRendering_RenderFeature");
     
@@ -19,8 +20,9 @@ public class FluidPass : ScriptableRenderPass {
     public FluidPass(
         RenderPassEvent renderPassEvent, 
         Material material, 
-        LayerMask fluidVFXMask, 
-        LayerMask fluidSplatMask, 
+        uint fluidVFXMask, 
+        LayerMask fluidVFXLayerMask, 
+        uint fluidSplatMask, 
         Shader overrideShader,
         Texture fluidMatcap
         ) {
@@ -28,6 +30,7 @@ public class FluidPass : ScriptableRenderPass {
         this.overrideShader = overrideShader;
         this.renderPassEvent = renderPassEvent;
         this.fluidVFXMask = fluidVFXMask;
+        this.fluidVFXLayerMask = fluidVFXLayerMask;
         this.fluidSplatMask = fluidSplatMask;
         this.fluidMatcap = fluidMatcap;
     }
@@ -72,38 +75,38 @@ public class FluidPass : ScriptableRenderPass {
                 new("Forward")
             };
             
-            if (cameraData.camera.TryGetCullingParameters(out var cullingParameters)) {
-                Shader.SetGlobalTexture("_FluidMatcap", fluidMatcap);
-                CoreUtils.SetRenderTarget(cmd, m_FluidBuffer, m_CameraDepthTarget);
-                CoreUtils.ClearRenderTarget(cmd, ClearFlag.Color, Color.black);
-                { // FLUID VFX PASS
-                    cullingParameters.cullingMask = (uint)fluidVFXMask.value;
+            Shader.SetGlobalTexture("_FluidMatcap", fluidMatcap);
+            CoreUtils.SetRenderTarget(cmd, m_FluidBuffer, m_CameraDepthTarget);
+            CoreUtils.ClearRenderTarget(cmd, ClearFlag.Color, Color.black);
+            { // FLUID VFX PASS
+                if (cameraData.camera.TryGetCullingParameters(out var cullingParameters)) {
+                    cullingParameters.cullingMask = (uint)fluidVFXLayerMask.value;
                     var cullingResults = context.Cull(ref cullingParameters);
                     var desc = new RendererListDesc(shaderTags, cullingResults, cameraData.camera) {
                         renderQueueRange = RenderQueueRange.all,
                         sortingCriteria = renderingData.cameraData.defaultOpaqueSortFlags,
-                        layerMask = fluidVFXMask,
+                        renderingLayerMask = fluidVFXMask
                     };
                     var rendererList = context.CreateRendererList(desc);
                     cmd.DrawRendererList(rendererList);
                 }
-                Blitter.BlitCameraTexture(cmd, m_FluidBuffer, m_CameraColorTarget, material, 0);
-                
-                CoreUtils.SetRenderTarget(cmd, m_FluidBuffer, m_CameraDepthTarget);
-                CoreUtils.ClearRenderTarget(cmd, ClearFlag.Color, Color.black);
-                { // FLUID SPLAT PASS
-                    var desc = new RendererListDesc(shaderTags, renderingData.cullResults, cameraData.camera) {
-                        overrideShader = overrideShader,
-                        renderQueueRange = RenderQueueRange.all,
-                        sortingCriteria = renderingData.cameraData.defaultOpaqueSortFlags,
-                        layerMask = fluidSplatMask,
-                    };
-                    var rendererList = context.CreateRendererList(desc);
-                    cmd.DrawRendererList(rendererList);
-                }
-                Blitter.BlitCameraTexture(cmd, m_FluidBuffer, m_CameraColorTarget, material, 0);
-                
             }
+            Blitter.BlitCameraTexture(cmd, m_FluidBuffer, m_CameraColorTarget, material, 0);
+            
+            CoreUtils.SetRenderTarget(cmd, m_FluidBuffer, m_CameraDepthTarget);
+            CoreUtils.ClearRenderTarget(cmd, ClearFlag.Color, Color.black);
+            { // FLUID SPLAT PASS
+                var desc = new RendererListDesc(shaderTags, renderingData.cullResults, cameraData.camera) {
+                    overrideShader = overrideShader,
+                    renderQueueRange = RenderQueueRange.all,
+                    sortingCriteria = renderingData.cameraData.defaultOpaqueSortFlags,
+                    renderingLayerMask = fluidSplatMask
+                };
+                var rendererList = context.CreateRendererList(desc);
+                cmd.DrawRendererList(rendererList);
+            }
+            Blitter.BlitCameraTexture(cmd, m_FluidBuffer, m_CameraColorTarget, material, 0);
+                
 
         }
         context.ExecuteCommandBuffer(cmd);
