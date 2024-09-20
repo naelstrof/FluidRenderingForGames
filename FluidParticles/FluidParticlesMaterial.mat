@@ -116,7 +116,7 @@ Material:
     - _OcclusionStrength: 1
     - _Opacity: 0.01
     - _Parallax: 0.005
-    - _ParticleSize: 0.1
+    - _ParticleSize: 0.03
     - _QueueControl: 0
     - _QueueOffset: 0
     - _ReceiveShadows: 1
