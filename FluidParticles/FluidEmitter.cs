@@ -35,7 +35,8 @@ public class FluidEmitter : MonoBehaviour {
                 _previousForward, 
                 _strength, 
                 _previousStrength, 
-                (float)i/subParticles
+                (float)i/subParticles,
+                i==0
                 );
         }
         _fluidParticleSystem.FixedUpdate();
