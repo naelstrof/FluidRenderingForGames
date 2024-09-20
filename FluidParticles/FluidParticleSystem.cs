@@ -8,7 +8,7 @@ using Random = UnityEngine.Random;
 public class FluidParticleSystem {
     
     const int particleCountMax = 3000;
-    public delegate void ParticleCollisionEventDelegate(Vector3 position, Vector3 normal);
+    public delegate void ParticleCollisionEventDelegate(RaycastHit hit, float particleVolume);
 
     //[SerializeField] private LightProbeProxyVolume lightProbeVolume;
 
@@ -39,7 +39,7 @@ public class FluidParticleSystem {
     private GraphicsBuffer _meshNormals;
     private GraphicsBuffer _meshUVs;
 
-    private event ParticleCollisionEventDelegate particleCollisionEvent;
+    public event ParticleCollisionEventDelegate particleCollisionEvent;
 
     public FluidParticleSystem(Material material, FluidParticleSystemSettings fluidParticleSystemSettings) {
         _material = material;
@@ -89,8 +89,8 @@ public class FluidParticleSystem {
         _particlePhysics[_particleSpawnIndex] = new ParticlePhysics {
             velocity = velocity,
         };
-        _particles[_particleSpawnIndex].position += _particlePhysics[_particleSpawnIndex].velocity * Time.deltaTime * subT;
-        _particlePhysics[_particleSpawnIndex].velocity += Physics.gravity * Time.deltaTime * subT;
+        _particles[_particleSpawnIndex].position += _particlePhysics[_particleSpawnIndex].velocity * (Time.deltaTime * subT);
+        _particlePhysics[_particleSpawnIndex].velocity += Physics.gravity * (Time.deltaTime * subT);
         _particlePhysics[_particleSpawnIndex].Colliding = colliding;
         _particleSpawnIndex = (_particleSpawnIndex + 1) % _particles.Length;
     }
@@ -106,7 +106,7 @@ public class FluidParticleSystem {
         var positionStep = _particlePhysics[index].velocity * Time.deltaTime;
         if (_particlePhysics[index].Colliding) {
             if (Physics.Raycast(_particles[index].position, positionStep, out var hit, positionStep.magnitude)) {
-                particleCollisionEvent?.Invoke(hit.point, hit.normal);
+                particleCollisionEvent?.Invoke(hit, _particles[index].volume);
                 var walk = index;
                 do {
                     _particles[walk].volume = 0f;

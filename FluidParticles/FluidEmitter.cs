@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using SkinnedMeshDecals;
 using UnityEngine;
 
 #if UNITY_EDITOR
@@ -11,6 +12,7 @@ public class FluidEmitter : MonoBehaviour {
 
     [SerializeField] private Material particleMaterial;
     [SerializeField] private FluidParticleSystemSettings fluidParticleSystemSettings;
+    [SerializeField] private LayerMask decalableHitMask = ~0;
     
     private FluidParticleSystem _fluidParticleSystem;
     private float _strength;
@@ -25,6 +27,14 @@ public class FluidEmitter : MonoBehaviour {
         EditorApplication.pauseStateChanged += OnPauseChanged;
 #endif
         _fluidParticleSystem = new FluidParticleSystem(particleMaterial, fluidParticleSystemSettings);
+        _fluidParticleSystem.particleCollisionEvent += OnFluidCollision;
+    }
+
+    private void OnFluidCollision(RaycastHit hit, float particlevolume) {
+        if (!hit.collider.TryGetComponent(out DecalableCollider decalableCollider)) return;
+        foreach (var rend in decalableCollider.decalableRenderers) {
+            PaintDecal.RenderDecal(rend, new DecalProjector(DecalProjectorType.SphereAlpha, new Color(1,1,1,0.2f)), new DecalProjection(hit.point, -hit.normal, particlevolume*0.2f));
+        }
     }
 
 #if UNITY_EDITOR
@@ -58,6 +68,7 @@ public class FluidEmitter : MonoBehaviour {
         EditorApplication.pauseStateChanged += OnPauseChanged;
         SceneView.duringSceneGui -= OnSceneGUI;
 #endif
+        _fluidParticleSystem.particleCollisionEvent -= OnFluidCollision;
         _fluidParticleSystem.Cleanup();
     }
 
