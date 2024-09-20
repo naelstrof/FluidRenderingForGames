@@ -8,6 +8,7 @@ using Random = UnityEngine.Random;
 public class FluidParticleSystem {
     
     const int particleCountMax = 3000;
+    public delegate void ParticleCollisionEventDelegate(Vector3 position, Vector3 normal);
 
     //[SerializeField] private LightProbeProxyVolume lightProbeVolume;
 
@@ -20,6 +21,7 @@ public class FluidParticleSystem {
 
     private struct ParticlePhysics {
         public Vector3 velocity;
+        public bool Colliding;
     }
 
     private Particle[] _particles;
@@ -29,12 +31,14 @@ public class FluidParticleSystem {
     private MaterialPropertyBlock _materialPropertyBlock;
     private RenderParams _renderParams;
     private int _particleSpawnIndex;
-    private float strength;
+    private float _strength;
     
-    private GraphicsBuffer meshTriangles;
-    private GraphicsBuffer meshVertices;
-    private GraphicsBuffer meshNormals;
-    private GraphicsBuffer meshUVs;
+    private GraphicsBuffer _meshTriangles;
+    private GraphicsBuffer _meshVertices;
+    private GraphicsBuffer _meshNormals;
+    private GraphicsBuffer _meshUVs;
+
+    private event ParticleCollisionEventDelegate particleCollisionEvent;
 
     public FluidParticleSystem(Material material) {
         _material = material;
@@ -46,13 +50,13 @@ public class FluidParticleSystem {
     public void Cleanup() {
         _particleBuffer?.Release();
         _particleBuffer = null;
-        meshTriangles?.Release();
-        meshVertices?.Release();
-        meshNormals?.Release();
-        meshUVs?.Release();
+        _meshTriangles?.Release();
+        _meshVertices?.Release();
+        _meshNormals?.Release();
+        _meshUVs?.Release();
     }
     
-    public void SpawnParticle(Vector3 position, Vector3 previousPosition, Vector3 forward, Vector3 previousForward, float strength, float previousStrength, float subT = 0f) {
+    public void SpawnParticle(Vector3 position, Vector3 previousPosition, Vector3 forward, Vector3 previousForward, float strength, float previousStrength, float subT = 0f, bool colliding = false) {
         var subTime = Time.timeSinceLevelLoad - Time.deltaTime * subT;
         var noiseFrequency = 4f;
         var velocityNoise = new Vector3(
@@ -81,26 +85,42 @@ public class FluidParticleSystem {
         };
         _particles[_particleSpawnIndex].position += _particlePhysics[_particleSpawnIndex].velocity * Time.deltaTime * subT;
         _particlePhysics[_particleSpawnIndex].velocity += Physics.gravity * Time.deltaTime * subT;
+        _particlePhysics[_particleSpawnIndex].Colliding = colliding;
         _particleSpawnIndex = (_particleSpawnIndex + 1) % _particles.Length;
     }
 
     public void FixedUpdate() {
         for (var index = 0; index < _particles.Length; index++) {
-            _particles[index].position += _particlePhysics[index].velocity * Time.deltaTime;
-            // TODO: can fade based on proximity to being respawned
-            //_particles[index].volume = Mathf.Max(0f, _particles[index].volume-Time.deltaTime*0.3f);
-            _particlePhysics[index].velocity += Physics.gravity * Time.deltaTime;
+            UpdateParticle(index);
         }
+    }
+
+    void UpdateParticle(int index) {
+        var positionStep = _particlePhysics[index].velocity * Time.deltaTime;
+        if (_particlePhysics[index].Colliding) {
+            if (Physics.Raycast(_particles[index].position, positionStep, out var hit, positionStep.magnitude)) {
+                particleCollisionEvent?.Invoke(hit.point, hit.normal);
+                var walk = index;
+                do {
+                    _particles[walk].volume = 0f;
+                    walk = (walk + 1) % _particlePhysics.Length;
+                } while (!_particlePhysics[walk].Colliding);
+            }
+        }
+        _particles[index].position += positionStep;
+        // TODO: can fade based on proximity to being respawned
+        //_particles[index].volume = Mathf.Max(0f, _particles[index].volume-Time.deltaTime*0.3f);
+        _particlePhysics[index].velocity += Physics.gravity * Time.deltaTime;
     }
 
     void Initialize() {
         // TODO: staticly initialize or separate out
         GenerateMeshData();
         _materialPropertyBlock ??= new MaterialPropertyBlock();
-        _materialPropertyBlock.SetBuffer("_ParticleTriangles", meshTriangles);
-        _materialPropertyBlock.SetBuffer("_ParticlePositions", meshVertices);
-        _materialPropertyBlock.SetBuffer("_ParticleNormals", meshNormals);
-        _materialPropertyBlock.SetBuffer("_ParticleUVs", meshUVs);
+        _materialPropertyBlock.SetBuffer("_ParticleTriangles", _meshTriangles);
+        _materialPropertyBlock.SetBuffer("_ParticlePositions", _meshVertices);
+        _materialPropertyBlock.SetBuffer("_ParticleNormals", _meshNormals);
+        _materialPropertyBlock.SetBuffer("_ParticleUVs", _meshUVs);
         _materialPropertyBlock.SetInt("_ParticleCount", particleCountMax);
         //_materialPropertyBlock.SetInt("_ParticleIndexCount", 4);
         if (_particleBuffer == null || !_particleBuffer.IsValid()) {
@@ -143,14 +163,14 @@ public class FluidParticleSystem {
         var normals = new Vector3[] {Vector3.forward, Vector3.forward, Vector3.forward,Vector3.forward};
         var triangles = new int[] {0, 1, 2, 0, 2, 3};
         var uvs = new Vector2[] {Vector2.up, Vector2.up + Vector2.right, Vector2.right, Vector2.zero};
-        meshVertices = new GraphicsBuffer(GraphicsBuffer.Target.Structured, vertices.Length, Marshal.SizeOf<Vector3>());
-        meshVertices.SetData(vertices);
-        meshNormals = new GraphicsBuffer(GraphicsBuffer.Target.Structured, normals.Length, Marshal.SizeOf<Vector3>());
-        meshNormals.SetData(normals);
-        meshTriangles = new GraphicsBuffer(GraphicsBuffer.Target.Structured, triangles.Length, Marshal.SizeOf<int>());
-        meshTriangles.SetData(triangles);
-        meshUVs = new GraphicsBuffer(GraphicsBuffer.Target.Structured, uvs.Length, Marshal.SizeOf<Vector2>());
-        meshUVs.SetData(uvs);
+        _meshVertices = new GraphicsBuffer(GraphicsBuffer.Target.Structured, vertices.Length, Marshal.SizeOf<Vector3>());
+        _meshVertices.SetData(vertices);
+        _meshNormals = new GraphicsBuffer(GraphicsBuffer.Target.Structured, normals.Length, Marshal.SizeOf<Vector3>());
+        _meshNormals.SetData(normals);
+        _meshTriangles = new GraphicsBuffer(GraphicsBuffer.Target.Structured, triangles.Length, Marshal.SizeOf<int>());
+        _meshTriangles.SetData(triangles);
+        _meshUVs = new GraphicsBuffer(GraphicsBuffer.Target.Structured, uvs.Length, Marshal.SizeOf<Vector2>());
+        _meshUVs.SetData(uvs);
     }
 
     public void OnDrawGizmos() {
