@@ -13,6 +13,13 @@
       "dependencies": {},
       "hash": "7ba45cc1603eb95a0d1f4f31fdcbe6b787cf3e7b"
     },
+    "com.naelstrof.skinnedmeshdecals": {
+      "version": "https://github.com/naelstrof/SkinnedMeshDecals.git#v8.0.3",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "ffb0bcc6e13d69699b536573ee81bf6942328fa7"
+    },
     "com.unity.burst": {
       "version": "1.8.15",
       "depth": 1,
@@ -38,7 +45,7 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.ide.rider": {
-      "version": "3.0.28",
+      "version": "3.0.31",
       "depth": 0,
       "source": "registry",
       "dependencies": {
@@ -128,7 +135,7 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.textmeshpro": {
-      "version": "3.0.6",
+      "version": "3.0.9",
       "depth": 0,
       "source": "registry",
       "dependencies": {
