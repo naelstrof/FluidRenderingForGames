@@ -10,6 +10,7 @@ using UnityEditor;
 public class FluidEmitter : MonoBehaviour {
 
     [SerializeField] private Material particleMaterial;
+    [SerializeField] private FluidParticleSystemSettings fluidParticleSystemSettings;
     
     private FluidParticleSystem _fluidParticleSystem;
     private float _strength;
@@ -23,7 +24,7 @@ public class FluidEmitter : MonoBehaviour {
 #if UNITY_EDITOR
         EditorApplication.pauseStateChanged += OnPauseChanged;
 #endif
-        _fluidParticleSystem = new FluidParticleSystem(particleMaterial);
+        _fluidParticleSystem = new FluidParticleSystem(particleMaterial, fluidParticleSystemSettings);
     }
 
 #if UNITY_EDITOR
