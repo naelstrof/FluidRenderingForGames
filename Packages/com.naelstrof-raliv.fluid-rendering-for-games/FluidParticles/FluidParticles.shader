@@ -8,6 +8,7 @@ Shader "FluidParticles"
 		[HideInInspector] _EmissionColor("Emission Color", Color) = (1,1,1,1)
 		_MainTex("_MainTex", 2D) = "white" {}
 		_ParticleSize("ParticleSize", Range( 0.001 , 0.1)) = 0.001
+		_Opacity("Opacity", Range( 0 , 0.1)) = 0
 
 
 		//_TessPhongStrength( "Tess Phong Strength", Range( 0, 1 ) ) = 0.5
@@ -278,6 +279,7 @@ Shader "FluidParticles"
 
 			CBUFFER_START(UnityPerMaterial)
 			float _ParticleSize;
+			float _Opacity;
 			#ifdef ASE_TESSELLATION
 				float _TessPhongStrength;
 				float _TessValue;
@@ -498,7 +500,7 @@ Shader "FluidParticles"
 					#endif
 				#endif
 
-				float4 color240 = IsGammaSpace() ? float4(0.1254902,0,0,1) : float4(0.01444384,0,0,1);
+				float4 color240 = IsGammaSpace() ? float4(1,0,0,1) : float4(1,0,0,1);
 				float2 vertexToFrag239 = IN.ase_texcoord4.xy;
 				float localGetParticle22 = ( 0.0 );
 				uint vertexID22 =(uint)IN.ase_texcoord4.z;
@@ -512,7 +514,7 @@ Shader "FluidParticles"
 				
 				float3 BakedAlbedo = 0;
 				float3 BakedEmission = 0;
-				float3 Color = ( color240 * tex2D( _MainTex, vertexToFrag239 ).r * opacity22 ).rgb;
+				float3 Color = ( color240 * tex2D( _MainTex, vertexToFrag239 ).r * opacity22 * _Opacity ).rgb;
 				float Alpha = 1;
 				float AlphaClipThreshold = 0.5;
 				float AlphaClipThresholdShadow = 0.5;
@@ -624,6 +626,7 @@ Shader "FluidParticles"
 
 			CBUFFER_START(UnityPerMaterial)
 			float _ParticleSize;
+			float _Opacity;
 			#ifdef ASE_TESSELLATION
 				float _TessPhongStrength;
 				float _TessValue;
@@ -936,6 +939,7 @@ Shader "FluidParticles"
 
 			CBUFFER_START(UnityPerMaterial)
 			float _ParticleSize;
+			float _Opacity;
 			#ifdef ASE_TESSELLATION
 				float _TessPhongStrength;
 				float _TessValue;
@@ -1239,6 +1243,7 @@ Shader "FluidParticles"
 
 			CBUFFER_START(UnityPerMaterial)
 			float _ParticleSize;
+			float _Opacity;
 			#ifdef ASE_TESSELLATION
 				float _TessPhongStrength;
 				float _TessValue;
@@ -1551,6 +1556,7 @@ Shader "FluidParticles"
 
 			CBUFFER_START(UnityPerMaterial)
 			float _ParticleSize;
+			float _Opacity;
 			#ifdef ASE_TESSELLATION
 				float _TessPhongStrength;
 				float _TessValue;
@@ -1792,11 +1798,11 @@ Node;AmplifyShaderEditor.VertexIdVariableNode;83;-16,400;Inherit;False;0;1;INT;0
 Node;AmplifyShaderEditor.InstanceIdNode;24;-48,480;Inherit;False;True;True;0;1;INT;0
 Node;AmplifyShaderEditor.RangedFloatNode;242;-144,576;Inherit;False;Property;_ParticleSize;ParticleSize;1;0;Create;True;0;0;0;False;0;False;0.001;0.1;0.001;0.1;0;1;FLOAT;0
 Node;AmplifyShaderEditor.VertexToFragmentNode;239;528,368;Inherit;False;False;False;1;0;FLOAT2;0,0;False;1;FLOAT2;0
-Node;AmplifyShaderEditor.SimpleMultiplyOpNode;241;1200,224;Inherit;False;3;3;0;COLOR;0,0,0,0;False;1;FLOAT;0;False;2;FLOAT;0;False;1;COLOR;0
+Node;AmplifyShaderEditor.SimpleMultiplyOpNode;241;1200,224;Inherit;False;4;4;0;COLOR;0,0,0,0;False;1;FLOAT;0;False;2;FLOAT;0;False;3;FLOAT;0;False;1;COLOR;0
 Node;AmplifyShaderEditor.CustomExpressionNode;22;192,448;Inherit;False;GetGrassInstance(instanceID, vertexID, grassMat, localPosition, localNormal, uv)@;7;File;7;True;vertexID;OBJECT;0;In;uint;Inherit;False;True;instanceID;OBJECT;0;In;uint;Inherit;False;True;particleSize;FLOAT;0;In;;Inherit;False;True;localPosition;FLOAT3;0,0,0;Out;;Inherit;False;True;localNormal;FLOAT3;0,0,0;Out;;Inherit;False;True;uv;FLOAT2;0,0;Out;;Inherit;False;True;opacity;FLOAT;0;Out;;Inherit;False;GetParticle;False;False;0;be738ec41f05d8b4ba53d30aa46319dc;False;8;0;FLOAT;0;False;1;OBJECT;0;False;2;OBJECT;0;False;3;FLOAT;0;False;4;FLOAT3;0,0,0;False;5;FLOAT3;0,0,0;False;6;FLOAT2;0,0;False;7;FLOAT;0;False;5;FLOAT;0;FLOAT3;5;FLOAT3;6;FLOAT2;7;FLOAT;8
-Node;AmplifyShaderEditor.ColorNode;240;912,96;Inherit;False;Constant;_Color0;Color 0;1;0;Create;True;0;0;0;False;0;False;0.1254902,0,0,1;0,0,0,0;True;True;0;6;COLOR;0;FLOAT;1;FLOAT;2;FLOAT;3;FLOAT;4;FLOAT3;5
 Node;AmplifyShaderEditor.SamplerNode;11;848,304;Inherit;True;Property;_MainTex;_MainTex;0;0;Create;True;0;0;0;False;0;False;-1;None;ae408e3a460eedc4eb89657b63168525;True;0;False;white;Auto;False;Object;-1;Auto;Texture2D;8;0;SAMPLER2D;;False;1;FLOAT2;0,0;False;2;FLOAT;0;False;3;FLOAT2;0,0;False;4;FLOAT2;0,0;False;5;FLOAT;1;False;6;FLOAT;0;False;7;SAMPLERSTATE;;False;6;COLOR;0;FLOAT;1;FLOAT;2;FLOAT;3;FLOAT;4;FLOAT3;5
-Node;AmplifyShaderEditor.RangedFloatNode;243;848,560;Inherit;False;Property;_Opacity;Opacity;2;0;Create;True;0;0;0;False;0;False;0;0.01;0;0.01;0;1;FLOAT;0
+Node;AmplifyShaderEditor.ColorNode;240;912,96;Inherit;False;Constant;_Color0;Color 0;1;0;Create;True;0;0;0;False;0;False;1,0,0,1;0,0,0,0;True;True;0;6;COLOR;0;FLOAT;1;FLOAT;2;FLOAT;3;FLOAT;4;FLOAT3;5
+Node;AmplifyShaderEditor.RangedFloatNode;243;848,560;Inherit;False;Property;_Opacity;Opacity;2;0;Create;True;0;0;0;False;0;False;0;0.01;0;0.1;0;1;FLOAT;0
 Node;AmplifyShaderEditor.TemplateMultiPassMasterNode;229;1248,416;Float;False;False;-1;2;UnityEditor.ShaderGraphUnlitGUI;0;13;New Amplify Shader;2992e84f91cbeb14eab234972e07ea9d;True;ExtraPrePass;0;0;ExtraPrePass;5;False;False;False;False;False;False;False;False;False;False;False;False;True;0;False;;False;True;0;False;;False;False;False;False;False;False;False;False;False;True;False;0;False;;255;False;;255;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;False;False;False;False;True;4;RenderPipeline=UniversalPipeline;RenderType=Opaque=RenderType;Queue=Geometry=Queue=0;UniversalMaterialType=Unlit;True;5;True;12;all;0;False;True;1;1;False;;0;False;;0;1;False;;0;False;;False;False;False;False;False;False;False;False;False;False;False;False;True;0;False;;False;True;True;True;True;True;0;False;;False;False;False;False;False;False;False;True;False;0;False;;255;False;;255;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;False;True;1;False;;True;3;False;;True;True;0;False;;0;False;;True;0;False;False;0;;0;0;Standard;0;False;0
 Node;AmplifyShaderEditor.TemplateMultiPassMasterNode;231;1248,416;Float;False;False;-1;2;UnityEditor.ShaderGraphUnlitGUI;0;13;New Amplify Shader;2992e84f91cbeb14eab234972e07ea9d;True;ShadowCaster;0;2;ShadowCaster;0;False;False;False;False;False;False;False;False;False;False;False;False;True;0;False;;False;True;0;False;;False;False;False;False;False;False;False;False;False;True;False;0;False;;255;False;;255;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;False;False;False;False;True;4;RenderPipeline=UniversalPipeline;RenderType=Opaque=RenderType;Queue=Geometry=Queue=0;UniversalMaterialType=Unlit;True;5;True;12;all;0;False;False;False;False;False;False;False;False;False;False;False;False;True;0;False;;False;False;False;True;False;False;False;False;0;False;;False;False;False;False;False;False;False;False;False;True;1;False;;True;3;False;;False;True;1;LightMode=ShadowCaster;False;False;0;;0;0;Standard;0;False;0
 Node;AmplifyShaderEditor.TemplateMultiPassMasterNode;232;1248,416;Float;False;False;-1;2;UnityEditor.ShaderGraphUnlitGUI;0;13;New Amplify Shader;2992e84f91cbeb14eab234972e07ea9d;True;DepthOnly;0;3;DepthOnly;0;False;False;False;False;False;False;False;False;False;False;False;False;True;0;False;;False;True;0;False;;False;False;False;False;False;False;False;False;False;True;False;0;False;;255;False;;255;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;False;False;False;False;True;4;RenderPipeline=UniversalPipeline;RenderType=Opaque=RenderType;Queue=Geometry=Queue=0;UniversalMaterialType=Unlit;True;5;True;12;all;0;False;False;False;False;False;False;False;False;False;False;False;False;True;0;False;;False;False;False;True;True;False;False;False;0;False;;False;False;False;False;False;False;False;False;False;True;1;False;;False;False;True;1;LightMode=DepthOnly;False;False;0;;0;0;Standard;0;False;0
@@ -1811,6 +1817,7 @@ WireConnection;239;0;22;7
 WireConnection;241;0;240;0
 WireConnection;241;1;11;1
 WireConnection;241;2;22;8
+WireConnection;241;3;243;0
 WireConnection;22;1;83;0
 WireConnection;22;2;24;0
 WireConnection;22;3;242;0
@@ -1818,4 +1825,4 @@ WireConnection;11;1;239;0
 WireConnection;230;2;241;0
 WireConnection;230;5;22;5
 ASEEND*/
-//CHKSM=2FF04B375F469788B49D472C8C8F3CFD773AAF69
+//CHKSM=4406B5A5DFDC91D4A6A68C8209262A1010A97C80

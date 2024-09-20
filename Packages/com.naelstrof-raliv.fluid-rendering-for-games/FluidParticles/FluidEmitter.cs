@@ -33,7 +33,10 @@ public class FluidEmitter : MonoBehaviour {
     private void OnFluidCollision(RaycastHit hit, float particlevolume) {
         if (!hit.collider.TryGetComponent(out DecalableCollider decalableCollider)) return;
         foreach (var rend in decalableCollider.decalableRenderers) {
-            PaintDecal.RenderDecal(rend, new DecalProjector(DecalProjectorType.SphereAlpha, new Color(1,1,1,0.2f)), new DecalProjection(hit.point, -hit.normal, particlevolume*0.2f));
+            PaintDecal.RenderDecal(rend, 
+                new DecalProjector(DecalProjectorType.SphereAlpha, new Color(1,1,1,0.2f)), 
+                new DecalProjection(hit.point, -hit.normal, particlevolume*0.03f)
+                );
         }
     }
 
