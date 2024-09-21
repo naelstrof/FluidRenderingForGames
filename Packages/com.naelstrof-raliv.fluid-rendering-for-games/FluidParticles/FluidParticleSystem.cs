@@ -33,7 +33,7 @@ public class FluidParticleSystem {
     private int _particleSpawnIndex;
     private float _strength;
     private FluidParticleSystemSettings _fluidParticleSystemSettings;
-    private LayerMask layerMask;
+    private LayerMask _collisionLayerMask;
     
     private GraphicsBuffer _meshTriangles;
     private GraphicsBuffer _meshVertices;
@@ -48,7 +48,8 @@ public class FluidParticleSystem {
 
     public event ParticleCollisionEventDelegate particleCollisionEvent;
 
-    public FluidParticleSystem(Material material, FluidParticleSystemSettings fluidParticleSystemSettings) {
+    public FluidParticleSystem(Material material, FluidParticleSystemSettings fluidParticleSystemSettings, LayerMask collisionLayerMask) {
+        _collisionLayerMask = collisionLayerMask;
         _material = material;
         _fluidParticleSystemSettings = fluidParticleSystemSettings;
         _particles = new Particle[particleCountMax];
@@ -112,7 +113,7 @@ public class FluidParticleSystem {
     void UpdateParticle(int index) {
         var positionStep = _particlePhysics[index].velocity * Time.deltaTime;
         if (_particlePhysics[index].Colliding) {
-            if (Physics.Raycast(_particles[index].position, positionStep, out var hit, positionStep.magnitude)) {
+            if (Physics.Raycast(_particles[index].position, positionStep, out var hit, positionStep.magnitude, _collisionLayerMask)) {
                 particleCollisionEvent?.Invoke(hit, _particles[index].volume);
                 var walk = index;
                 do {
