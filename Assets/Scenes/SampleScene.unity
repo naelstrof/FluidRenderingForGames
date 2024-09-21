@@ -1898,7 +1898,8 @@ MonoBehaviour:
     type: 2}
   decalableHitMask:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 4294967295
+  _strength: 0
 --- !u!4 &1664735594
 Transform:
   m_ObjectHideFlags: 0
