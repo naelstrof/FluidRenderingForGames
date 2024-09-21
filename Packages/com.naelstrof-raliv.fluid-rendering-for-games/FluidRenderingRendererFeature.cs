@@ -20,28 +20,7 @@ public class FluidRenderingRendererFeature : ScriptableRendererFeature {
         }
         _material = CoreUtils.CreateEngineMaterial(shader);
 
-        uint fluidVFXMask = 0;
-        uint fluidSplatMask = 0;
-        var maskNames = GraphicsSettings.currentRenderPipeline.renderingLayerMaskNames;
-        for (int i = 0; i < maskNames.Length; i++) {
-            if (maskNames[i] == "FluidVFX") {
-                fluidVFXMask = (uint)(1 << i);
-            }
-
-            if (maskNames[i] == "FluidSplats") {
-                fluidSplatMask = (uint)(1 << i);
-            }
-        }
-
-        if (fluidVFXMask == 0) {
-            Debug.LogError("Couldn't find rendering layer FluidVFX, please add it to the Rendering Layer Mask list.");
-        }
-        
-        if (fluidSplatMask == 0) {
-            Debug.LogError("Couldn't find rendering layer FluidSplats, please add it to the Rendering Layer Mask list.");
-        }
-
-        _fluidPass = new FluidPass(RenderPassEvent.BeforeRenderingPostProcessing, _material, fluidVFXMask, fluidVFXLayerMask, fluidSplatMask, overrideShader, fluidMatcap);
+        _fluidPass = new FluidPass(RenderPassEvent.BeforeRenderingPostProcessing, _material, fluidVFXLayerMask, overrideShader, fluidMatcap);
     }
 
     public override void SetupRenderPasses(ScriptableRenderer renderer, in RenderingData renderingData) {
