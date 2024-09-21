@@ -21,6 +21,7 @@ public class FluidRenderingRendererFeature : ScriptableRendererFeature {
         _material = CoreUtils.CreateEngineMaterial(shader);
 
         _fluidPass = new FluidPass(RenderPassEvent.BeforeRenderingPostProcessing, _material, fluidVFXLayerMask, overrideShader, fluidMatcap);
+        Shader.SetGlobalTexture("_FluidMatcap", fluidMatcap);
     }
 
     public override void SetupRenderPasses(ScriptableRenderer renderer, in RenderingData renderingData) {
