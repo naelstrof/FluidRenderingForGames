@@ -13,9 +13,9 @@ public class FluidEmitter : MonoBehaviour {
     [SerializeField] private Material particleMaterial;
     [SerializeField] private FluidParticleSystemSettings fluidParticleSystemSettings;
     [SerializeField] private LayerMask decalableHitMask = ~0;
+    [SerializeField, Range(0f,5f)] private float _strength;
     
     private FluidParticleSystem _fluidParticleSystem;
-    private float _strength;
     private Vector3 _previousPosition;
     private Vector3 _previousForward;
     private float _previousStrength;
@@ -26,7 +26,7 @@ public class FluidEmitter : MonoBehaviour {
 #if UNITY_EDITOR
         EditorApplication.pauseStateChanged += OnPauseChanged;
 #endif
-        _fluidParticleSystem = new FluidParticleSystem(particleMaterial, fluidParticleSystemSettings);
+        _fluidParticleSystem = new FluidParticleSystem(particleMaterial, fluidParticleSystemSettings, LayerMask.GetMask("Ragdoll"));
         _fluidParticleSystem.particleCollisionEvent += OnFluidCollision;
     }
 
