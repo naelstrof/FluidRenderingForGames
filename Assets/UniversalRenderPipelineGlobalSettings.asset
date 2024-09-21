@@ -22,9 +22,7 @@ MonoBehaviour:
   - Light Layer 5
   - Light Layer 6
   - Light Layer 7
-  - FluidVFX
-  - FluidSplats
-  m_ValidRenderingLayers: 1023
+  m_ValidRenderingLayers: 255
   lightLayerName0: Light Layer default
   lightLayerName1: Light Layer 1
   lightLayerName2: Light Layer 2

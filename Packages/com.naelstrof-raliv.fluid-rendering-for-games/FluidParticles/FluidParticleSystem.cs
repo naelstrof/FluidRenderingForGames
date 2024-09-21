@@ -145,7 +145,6 @@ public class FluidParticleSystem {
         //if (lightProbeVolume == null) {
         //    lightProbeVolume = new GameObject("FlockingLightProbeVolume", typeof(LightProbeProxyVolume)).GetComponent<LightProbeProxyVolume>();
         //}
-        layerMask = LayerMask.NameToLayer("FluidVFX");
         _renderParams = new RenderParams(_material) {
             // TODO: FIX BOUNDS
             worldBounds = new Bounds(Vector3.zero, Vector3.one*1000f),
@@ -153,7 +152,7 @@ public class FluidParticleSystem {
             //lightProbeUsage = LightProbeUsage.UseProxyVolume,
             //reflectionProbeUsage = ReflectionProbeUsage.BlendProbes,
             //lightProbeProxyVolume = lightProbeVolume,
-            layer = layerMask
+            layer = LayerMask.NameToLayer("FluidVFX")
         };
         _materialPropertyBlock.SetBuffer(Particle1, _particleBuffer);
     }
