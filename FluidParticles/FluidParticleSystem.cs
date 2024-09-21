@@ -33,11 +33,18 @@ public class FluidParticleSystem {
     private int _particleSpawnIndex;
     private float _strength;
     private FluidParticleSystemSettings _fluidParticleSystemSettings;
+    private LayerMask layerMask;
     
     private GraphicsBuffer _meshTriangles;
     private GraphicsBuffer _meshVertices;
     private GraphicsBuffer _meshNormals;
     private GraphicsBuffer _meshUVs;
+    private static readonly int ParticleTriangles = Shader.PropertyToID("_ParticleTriangles");
+    private static readonly int ParticlePositions = Shader.PropertyToID("_ParticlePositions");
+    private static readonly int ParticleNormals = Shader.PropertyToID("_ParticleNormals");
+    private static readonly int ParticleUVs = Shader.PropertyToID("_ParticleUVs");
+    private static readonly int ParticleCount = Shader.PropertyToID("_ParticleCount");
+    private static readonly int Particle1 = Shader.PropertyToID("_Particle");
 
     public event ParticleCollisionEventDelegate particleCollisionEvent;
 
@@ -124,11 +131,11 @@ public class FluidParticleSystem {
         // TODO: staticly initialize or separate out
         GenerateMeshData();
         _materialPropertyBlock ??= new MaterialPropertyBlock();
-        _materialPropertyBlock.SetBuffer("_ParticleTriangles", _meshTriangles);
-        _materialPropertyBlock.SetBuffer("_ParticlePositions", _meshVertices);
-        _materialPropertyBlock.SetBuffer("_ParticleNormals", _meshNormals);
-        _materialPropertyBlock.SetBuffer("_ParticleUVs", _meshUVs);
-        _materialPropertyBlock.SetInt("_ParticleCount", particleCountMax);
+        _materialPropertyBlock.SetBuffer(ParticleTriangles, _meshTriangles);
+        _materialPropertyBlock.SetBuffer(ParticlePositions, _meshVertices);
+        _materialPropertyBlock.SetBuffer(ParticleNormals, _meshNormals);
+        _materialPropertyBlock.SetBuffer(ParticleUVs, _meshUVs);
+        _materialPropertyBlock.SetInt(ParticleCount, particleCountMax);
         //_materialPropertyBlock.SetInt("_ParticleIndexCount", 4);
         if (_particleBuffer == null || !_particleBuffer.IsValid()) {
             _particleBuffer?.Release();
@@ -137,14 +144,7 @@ public class FluidParticleSystem {
         //if (lightProbeVolume == null) {
         //    lightProbeVolume = new GameObject("FlockingLightProbeVolume", typeof(LightProbeProxyVolume)).GetComponent<LightProbeProxyVolume>();
         //}
-
-        uint fluidVFXMask = 0;
-        var maskNames = GraphicsSettings.currentRenderPipeline.renderingLayerMaskNames;
-        for (int i = 0; i < maskNames.Length; i++) {
-            if (maskNames[i] == "FluidVFX") {
-                fluidVFXMask = (uint)(1 << i);
-            }
-        }
+        layerMask = LayerMask.NameToLayer("FluidVFX");
         _renderParams = new RenderParams(_material) {
             // TODO: FIX BOUNDS
             worldBounds = new Bounds(Vector3.zero, Vector3.one*1000f),
@@ -152,10 +152,9 @@ public class FluidParticleSystem {
             //lightProbeUsage = LightProbeUsage.UseProxyVolume,
             //reflectionProbeUsage = ReflectionProbeUsage.BlendProbes,
             //lightProbeProxyVolume = lightProbeVolume,
-            renderingLayerMask = fluidVFXMask,
-            layer = LayerMask.NameToLayer("FluidVFX")
+            layer = layerMask
         };
-        _materialPropertyBlock.SetBuffer("_Particle", _particleBuffer);
+        _materialPropertyBlock.SetBuffer(Particle1, _particleBuffer);
     }
 
     public void Render() {

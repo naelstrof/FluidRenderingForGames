@@ -7,8 +7,6 @@ public class FluidPass : ScriptableRenderPass {
     private Material material;
     private Shader overrideShader;
     private Texture fluidMatcap;
-    private uint fluidVFXMask;
-    private uint fluidSplatMask;
     private LayerMask fluidVFXLayerMask;
     
     private ProfilingSampler m_ProfilingSampler = new ProfilingSampler("FluidRendering_RenderFeature");
@@ -16,23 +14,27 @@ public class FluidPass : ScriptableRenderPass {
     private RTHandle m_CameraColorTarget;
     private RTHandle m_CameraDepthTarget;
     private RTHandle m_FluidBuffer;
+    private ShaderTagId[] shaderTags;
     
     public FluidPass(
         RenderPassEvent renderPassEvent, 
         Material material, 
-        uint fluidVFXMask, 
         LayerMask fluidVFXLayerMask, 
-        uint fluidSplatMask, 
         Shader overrideShader,
         Texture fluidMatcap
         ) {
         this.material = material;
         this.overrideShader = overrideShader;
         this.renderPassEvent = renderPassEvent;
-        this.fluidVFXMask = fluidVFXMask;
         this.fluidVFXLayerMask = fluidVFXLayerMask;
-        this.fluidSplatMask = fluidSplatMask;
         this.fluidMatcap = fluidMatcap;
+        shaderTags = new ShaderTagId[] {
+            new("UniversalForward"),
+            new("UniversalForwardOnly"),
+            new("LightweightForward"),
+            new("SRPDefaultUnlit"),
+            new("Forward")
+        };
     }
 
     public void SetTarget(RTHandle colorHandle, RTHandle depthHandle) {
@@ -68,14 +70,6 @@ public class FluidPass : ScriptableRenderPass {
         
         CommandBuffer cmd = CommandBufferPool.Get();
         using (new ProfilingScope(cmd, m_ProfilingSampler)) {
-            var shaderTags = new ShaderTagId[] {
-                new("UniversalForward"),
-                new("UniversalForwardOnly"),
-                new("LightweightForward"),
-                new("SRPDefaultUnlit"),
-                new("Forward")
-            };
-            
             Shader.SetGlobalTexture("_FluidMatcap", fluidMatcap);
             CoreUtils.SetRenderTarget(cmd, m_FluidBuffer, m_CameraDepthTarget);
             CoreUtils.ClearRenderTarget(cmd, ClearFlag.Color, Color.black);
@@ -86,29 +80,13 @@ public class FluidPass : ScriptableRenderPass {
                     var desc = new RendererListDesc(shaderTags, cullingResults, cameraData.camera) {
                         renderQueueRange = RenderQueueRange.all,
                         sortingCriteria = renderingData.cameraData.defaultOpaqueSortFlags,
-                        renderingLayerMask = fluidVFXMask
+                        layerMask = fluidVFXLayerMask.value
                     };
                     var rendererList = context.CreateRendererList(desc);
                     cmd.DrawRendererList(rendererList);
                 }
             }
             Blitter.BlitCameraTexture(cmd, m_FluidBuffer, m_CameraColorTarget, material, 0);
-            
-            CoreUtils.SetRenderTarget(cmd, m_FluidBuffer, m_CameraDepthTarget);
-            CoreUtils.ClearRenderTarget(cmd, ClearFlag.Color, Color.black);
-            { // FLUID SPLAT PASS
-                var desc = new RendererListDesc(shaderTags, renderingData.cullResults, cameraData.camera) {
-                    overrideShader = overrideShader,
-                    renderQueueRange = RenderQueueRange.all,
-                    sortingCriteria = renderingData.cameraData.defaultOpaqueSortFlags,
-                    renderingLayerMask = fluidSplatMask
-                };
-                var rendererList = context.CreateRendererList(desc);
-                cmd.DrawRendererList(rendererList);
-            }
-            Blitter.BlitCameraTexture(cmd, m_FluidBuffer, m_CameraColorTarget, material, 0);
-                
-
         }
         context.ExecuteCommandBuffer(cmd);
         cmd.Clear();
