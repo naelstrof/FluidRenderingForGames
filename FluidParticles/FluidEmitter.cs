@@ -26,7 +26,7 @@ public class FluidEmitter : MonoBehaviour {
 #if UNITY_EDITOR
         EditorApplication.pauseStateChanged += OnPauseChanged;
 #endif
-        _fluidParticleSystem = new FluidParticleSystem(particleMaterial, fluidParticleSystemSettings, LayerMask.GetMask("Ragdoll"));
+        _fluidParticleSystem = new FluidParticleSystem(particleMaterial, fluidParticleSystemSettings, decalableHitMask);
         _fluidParticleSystem.particleCollisionEvent += OnFluidCollision;
     }
 
