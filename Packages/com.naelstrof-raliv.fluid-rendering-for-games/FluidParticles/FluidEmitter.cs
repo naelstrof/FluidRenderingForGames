@@ -35,9 +35,10 @@ public class FluidEmitter : MonoBehaviour {
         if (!hit.collider.TryGetComponent(out DecalableCollider decalableCollider)) return;
         foreach (var rend in decalableCollider.decalableRenderers) {
             if (!rend) continue;
+            var particleSize = particlevolume * fluidParticleSystemSettings.splatSize;
             PaintDecal.RenderDecal(rend, 
-                new DecalProjector(DecalProjectorType.SphereAlpha, new Color(1,1,1,0.2f)), 
-                new DecalProjection(hit.point, -hit.normal, particlevolume*fluidParticleSystemSettings.splatSize)
+                new DecalProjector(DecalProjectorType.SphereAlpha, new Color(1,1,1,particlevolume * 0.05f)),
+                new DecalProjection(hit.point, Quaternion.LookRotation(-hit.normal, Vector3.up), new Vector3(particleSize, particleSize, particleSize*6f))
                 );
         }
     }
