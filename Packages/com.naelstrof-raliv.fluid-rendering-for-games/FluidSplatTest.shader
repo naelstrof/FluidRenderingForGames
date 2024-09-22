@@ -8,6 +8,7 @@ Shader "FluidSplatTest"
 		[HideInInspector] _EmissionColor("Emission Color", Color) = (1,1,1,1)
 		_MainTex("MainTex", 2D) = "white" {}
 		_DecalColorMap("DecalColorMap", 2D) = "black" {}
+		_EdgeNoise("EdgeNoise", Range( 0 , 0.2)) = 0.05
 		[HideInInspector] _texcoord( "", 2D ) = "white" {}
 
 
@@ -279,9 +280,8 @@ Shader "FluidSplatTest"
 				#define ENABLE_TERRAIN_PERPIXEL_NORMAL
 			#endif
 
-			#define ASE_NEEDS_FRAG_WORLD_POSITION
-			#define ASE_NEEDS_FRAG_WORLD_NORMAL
 			#define ASE_NEEDS_FRAG_WORLD_TANGENT
+			#define ASE_NEEDS_FRAG_WORLD_NORMAL
 			#define ASE_NEEDS_FRAG_WORLD_BITANGENT
 
 
@@ -327,6 +327,8 @@ Shader "FluidSplatTest"
 
 			CBUFFER_START(UnityPerMaterial)
 			float4 _MainTex_ST;
+			float4 _DecalColorMap_TexelSize;
+			float _EdgeNoise;
 			#ifdef ASE_TRANSMISSION
 				float _TransmissionShadow;
 			#endif
@@ -362,19 +364,32 @@ Shader "FluidSplatTest"
 			sampler2D _FluidMatcap;
 
 
-			float3 PerturbNormal107_g2( float3 surf_pos, float3 surf_norm, float height, float scale )
+			float3 mod2D289( float3 x ) { return x - floor( x * ( 1.0 / 289.0 ) ) * 289.0; }
+			float2 mod2D289( float2 x ) { return x - floor( x * ( 1.0 / 289.0 ) ) * 289.0; }
+			float3 permute( float3 x ) { return mod2D289( ( ( x * 34.0 ) + 1.0 ) * x ); }
+			float snoise( float2 v )
 			{
-				// "Bump Mapping Unparametrized Surfaces on the GPU" by Morten S. Mikkelsen
-				float3 vSigmaS = ddx( surf_pos );
-				float3 vSigmaT = ddy( surf_pos );
-				float3 vN = surf_norm;
-				float3 vR1 = cross( vSigmaT , vN );
-				float3 vR2 = cross( vN , vSigmaS );
-				float fDet = dot( vSigmaS , vR1 );
-				float dBs = ddx( height );
-				float dBt = ddy( height );
-				float3 vSurfGrad = scale * 0.05 * sign( fDet ) * ( dBs * vR1 + dBt * vR2 );
-				return normalize ( abs( fDet ) * vN - vSurfGrad );
+				const float4 C = float4( 0.211324865405187, 0.366025403784439, -0.577350269189626, 0.024390243902439 );
+				float2 i = floor( v + dot( v, C.yy ) );
+				float2 x0 = v - i + dot( i, C.xx );
+				float2 i1;
+				i1 = ( x0.x > x0.y ) ? float2( 1.0, 0.0 ) : float2( 0.0, 1.0 );
+				float4 x12 = x0.xyxy + C.xxzz;
+				x12.xy -= i1;
+				i = mod2D289( i );
+				float3 p = permute( permute( i.y + float3( 0.0, i1.y, 1.0 ) ) + i.x + float3( 0.0, i1.x, 1.0 ) );
+				float3 m = max( 0.5 - float3( dot( x0, x0 ), dot( x12.xy, x12.xy ), dot( x12.zw, x12.zw ) ), 0.0 );
+				m = m * m;
+				m = m * m;
+				float3 x = 2.0 * frac( p * C.www ) - 1.0;
+				float3 h = abs( x ) - 0.5;
+				float3 ox = floor( x + 0.5 );
+				float3 a0 = x - ox;
+				m *= 1.79284291400159 - 0.85373472095314 * ( a0 * a0 + h * h );
+				float3 g;
+				g.x = a0.x * x0.x + h.x * x0.y;
+				g.yz = a0.yz * x12.xz + h.yz * x12.yw;
+				return 130.0 * dot( m, g );
 			}
 			
 
@@ -585,29 +600,36 @@ Shader "FluidSplatTest"
 				float2 uv_MainTex = IN.ase_texcoord8.xy * _MainTex_ST.xy + _MainTex_ST.zw;
 				float4 color22_g1 = IsGammaSpace() ? float4(0.6603774,0.6603774,0.6603774,0) : float4(0.3936214,0.3936214,0.3936214,0);
 				float4 color12_g1 = IsGammaSpace() ? float4(1,1,1,0) : float4(1,1,1,0);
-				float3 surf_pos107_g2 = WorldPosition;
-				float3 surf_norm107_g2 = WorldNormal;
+				float2 _Vector0 = float2(2,0);
 				float2 texCoord1_g1 = IN.ase_texcoord8.zw * float2( 1,1 ) + float2( 0,0 );
-				float4 tex2DNode2_g1 = tex2D( _DecalColorMap, texCoord1_g1 );
-				float height107_g2 = tex2DNode2_g1.r;
-				float scale107_g2 = 0.5;
-				float3 localPerturbNormal107_g2 = PerturbNormal107_g2( surf_pos107_g2 , surf_norm107_g2 , height107_g2 , scale107_g2 );
-				float3x3 ase_worldToTangent = float3x3(WorldTangent,WorldBiTangent,WorldNormal);
-				float3 worldToTangentDir42_g2 = mul( ase_worldToTangent, localPerturbNormal107_g2);
-				float3 temp_output_11_40_g1 = worldToTangentDir42_g2;
+				float temp_output_31_0_g1 = ( 1.0 / _DecalColorMap_TexelSize.z );
+				float2 appendResult36_g1 = (float2(( texCoord1_g1.x + temp_output_31_0_g1 ) , texCoord1_g1.y));
+				float simplePerlin2D64_g1 = snoise( texCoord1_g1*40.0 );
+				simplePerlin2D64_g1 = simplePerlin2D64_g1*0.5 + 0.5;
+				float temp_output_71_0_g1 = ( -simplePerlin2D64_g1 * _EdgeNoise );
+				float2 appendResult37_g1 = (float2(( texCoord1_g1.x - temp_output_31_0_g1 ) , texCoord1_g1.y));
+				float3 appendResult48_g1 = (float3(_Vector0.x , _Vector0.y , ( ( ( tex2D( _DecalColorMap, appendResult36_g1 ).r + temp_output_71_0_g1 ) * 5.0 ) - ( ( tex2D( _DecalColorMap, appendResult37_g1 ).r + temp_output_71_0_g1 ) * 5.0 ) )));
+				float3 normalizeResult50_g1 = normalize( appendResult48_g1 );
+				float2 appendResult40_g1 = (float2(texCoord1_g1.x , ( texCoord1_g1.y + temp_output_31_0_g1 )));
+				float2 appendResult41_g1 = (float2(texCoord1_g1.x , ( texCoord1_g1.y - temp_output_31_0_g1 )));
+				float3 appendResult49_g1 = (float3(_Vector0.y , _Vector0.x , ( ( ( tex2D( _DecalColorMap, appendResult40_g1 ).r + temp_output_71_0_g1 ) * 5.0 ) - ( ( tex2D( _DecalColorMap, appendResult41_g1 ).r + temp_output_71_0_g1 ) * 5.0 ) )));
+				float3 normalizeResult51_g1 = normalize( appendResult49_g1 );
+				float3 temp_output_52_0_g1 = cross( normalizeResult50_g1 , normalizeResult51_g1 );
 				float3 tanToWorld0 = float3( WorldTangent.x, WorldBiTangent.x, WorldNormal.x );
 				float3 tanToWorld1 = float3( WorldTangent.y, WorldBiTangent.y, WorldNormal.y );
 				float3 tanToWorld2 = float3( WorldTangent.z, WorldBiTangent.z, WorldNormal.z );
-				float3 tanNormal26_g1 = temp_output_11_40_g1;
+				float3 tanNormal26_g1 = temp_output_52_0_g1;
 				float3 worldNormal26_g1 = float3(dot(tanToWorld0,tanNormal26_g1), dot(tanToWorld1,tanNormal26_g1), dot(tanToWorld2,tanNormal26_g1));
-				float4 lerpResult23_g1 = lerp( color22_g1 , color12_g1 , tex2D( _FluidMatcap, mul( unity_WorldToCamera, float4( worldNormal26_g1 , 0.0 ) ).xyz.xy ).r);
-				float smoothstepResult15_g1 = smoothstep( 0.1 , 0.3 , tex2DNode2_g1.r);
-				float smoothstepResult16_g1 = smoothstep( 1.0 , 0.2 , tex2DNode2_g1.r);
+				float2 _Vector1 = float2(0.5,0.5);
+				float4 lerpResult23_g1 = lerp( color22_g1 , color12_g1 , tex2D( _FluidMatcap, ( ( (mul( unity_WorldToCamera, float4( worldNormal26_g1 , 0.0 ) ).xyz).xy * _Vector1 ) + _Vector1 ) ).r);
+				float temp_output_57_0_g1 = ( ( tex2D( _DecalColorMap, texCoord1_g1 ).r + temp_output_71_0_g1 ) * 5.0 );
+				float smoothstepResult15_g1 = smoothstep( 0.1 , 0.3 , temp_output_57_0_g1);
+				float smoothstepResult16_g1 = smoothstep( 1.0 , 0.2 , temp_output_57_0_g1);
 				float4 lerpResult14 = lerp( tex2D( _MainTex, uv_MainTex ) , lerpResult23_g1 , ( ( smoothstepResult15_g1 * 0.7 ) * (0.7 + (smoothstepResult16_g1 - 0.0) * (1.0 - 0.7) / (1.0 - 0.0)) ));
 				
 
 				float3 BaseColor = lerpResult14.rgb;
-				float3 Normal = temp_output_11_40_g1;
+				float3 Normal = temp_output_52_0_g1;
 				float3 Emission = 0;
 				float3 Specular = 0.5;
 				float Metallic = 0;
@@ -951,6 +973,8 @@ Shader "FluidSplatTest"
 
 			CBUFFER_START(UnityPerMaterial)
 			float4 _MainTex_ST;
+			float4 _DecalColorMap_TexelSize;
+			float _EdgeNoise;
 			#ifdef ASE_TRANSMISSION
 				float _TransmissionShadow;
 			#endif
@@ -1280,6 +1304,8 @@ Shader "FluidSplatTest"
 
 			CBUFFER_START(UnityPerMaterial)
 			float4 _MainTex_ST;
+			float4 _DecalColorMap_TexelSize;
+			float _EdgeNoise;
 			#ifdef ASE_TRANSMISSION
 				float _TransmissionShadow;
 			#endif
@@ -1531,7 +1557,6 @@ Shader "FluidSplatTest"
 			#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/MetaInput.hlsl"
 			#include "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/ShaderPass.hlsl"
 
-			#define ASE_NEEDS_FRAG_WORLD_POSITION
 			#define ASE_NEEDS_VERT_NORMAL
 
 
@@ -1569,6 +1594,8 @@ Shader "FluidSplatTest"
 
 			CBUFFER_START(UnityPerMaterial)
 			float4 _MainTex_ST;
+			float4 _DecalColorMap_TexelSize;
+			float _EdgeNoise;
 			#ifdef ASE_TRANSMISSION
 				float _TransmissionShadow;
 			#endif
@@ -1604,19 +1631,32 @@ Shader "FluidSplatTest"
 			sampler2D _FluidMatcap;
 
 
-			float3 PerturbNormal107_g2( float3 surf_pos, float3 surf_norm, float height, float scale )
+			float3 mod2D289( float3 x ) { return x - floor( x * ( 1.0 / 289.0 ) ) * 289.0; }
+			float2 mod2D289( float2 x ) { return x - floor( x * ( 1.0 / 289.0 ) ) * 289.0; }
+			float3 permute( float3 x ) { return mod2D289( ( ( x * 34.0 ) + 1.0 ) * x ); }
+			float snoise( float2 v )
 			{
-				// "Bump Mapping Unparametrized Surfaces on the GPU" by Morten S. Mikkelsen
-				float3 vSigmaS = ddx( surf_pos );
-				float3 vSigmaT = ddy( surf_pos );
-				float3 vN = surf_norm;
-				float3 vR1 = cross( vSigmaT , vN );
-				float3 vR2 = cross( vN , vSigmaS );
-				float fDet = dot( vSigmaS , vR1 );
-				float dBs = ddx( height );
-				float dBt = ddy( height );
-				float3 vSurfGrad = scale * 0.05 * sign( fDet ) * ( dBs * vR1 + dBt * vR2 );
-				return normalize ( abs( fDet ) * vN - vSurfGrad );
+				const float4 C = float4( 0.211324865405187, 0.366025403784439, -0.577350269189626, 0.024390243902439 );
+				float2 i = floor( v + dot( v, C.yy ) );
+				float2 x0 = v - i + dot( i, C.xx );
+				float2 i1;
+				i1 = ( x0.x > x0.y ) ? float2( 1.0, 0.0 ) : float2( 0.0, 1.0 );
+				float4 x12 = x0.xyxy + C.xxzz;
+				x12.xy -= i1;
+				i = mod2D289( i );
+				float3 p = permute( permute( i.y + float3( 0.0, i1.y, 1.0 ) ) + i.x + float3( 0.0, i1.x, 1.0 ) );
+				float3 m = max( 0.5 - float3( dot( x0, x0 ), dot( x12.xy, x12.xy ), dot( x12.zw, x12.zw ) ), 0.0 );
+				m = m * m;
+				m = m * m;
+				float3 x = 2.0 * frac( p * C.www ) - 1.0;
+				float3 h = abs( x ) - 0.5;
+				float3 ox = floor( x + 0.5 );
+				float3 a0 = x - ox;
+				m *= 1.79284291400159 - 0.85373472095314 * ( a0 * a0 + h * h );
+				float3 g;
+				g.x = a0.x * x0.x + h.x * x0.y;
+				g.yz = a0.yz * x12.xz + h.yz * x12.yw;
+				return 130.0 * dot( m, g );
 			}
 			
 
@@ -1627,10 +1667,10 @@ Shader "FluidSplatTest"
 				UNITY_TRANSFER_INSTANCE_ID(v, o);
 				UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
 
-				float3 ase_worldNormal = TransformObjectToWorldNormal(v.normalOS);
-				o.ase_texcoord5.xyz = ase_worldNormal;
 				float3 ase_worldTangent = TransformObjectToWorldDir(v.ase_tangent.xyz);
-				o.ase_texcoord6.xyz = ase_worldTangent;
+				o.ase_texcoord5.xyz = ase_worldTangent;
+				float3 ase_worldNormal = TransformObjectToWorldNormal(v.normalOS);
+				o.ase_texcoord6.xyz = ase_worldNormal;
 				float ase_vertexTangentSign = v.ase_tangent.w * ( unity_WorldTransformParams.w >= 0.0 ? 1.0 : -1.0 );
 				float3 ase_worldBitangent = cross( ase_worldNormal, ase_worldTangent ) * ase_vertexTangentSign;
 				o.ase_texcoord7.xyz = ase_worldBitangent;
@@ -1796,27 +1836,34 @@ Shader "FluidSplatTest"
 				float2 uv_MainTex = IN.ase_texcoord4.xy * _MainTex_ST.xy + _MainTex_ST.zw;
 				float4 color22_g1 = IsGammaSpace() ? float4(0.6603774,0.6603774,0.6603774,0) : float4(0.3936214,0.3936214,0.3936214,0);
 				float4 color12_g1 = IsGammaSpace() ? float4(1,1,1,0) : float4(1,1,1,0);
-				float3 surf_pos107_g2 = WorldPosition;
-				float3 ase_worldNormal = IN.ase_texcoord5.xyz;
-				float3 surf_norm107_g2 = ase_worldNormal;
+				float2 _Vector0 = float2(2,0);
 				float2 texCoord1_g1 = IN.ase_texcoord4.zw * float2( 1,1 ) + float2( 0,0 );
-				float4 tex2DNode2_g1 = tex2D( _DecalColorMap, texCoord1_g1 );
-				float height107_g2 = tex2DNode2_g1.r;
-				float scale107_g2 = 0.5;
-				float3 localPerturbNormal107_g2 = PerturbNormal107_g2( surf_pos107_g2 , surf_norm107_g2 , height107_g2 , scale107_g2 );
-				float3 ase_worldTangent = IN.ase_texcoord6.xyz;
+				float temp_output_31_0_g1 = ( 1.0 / _DecalColorMap_TexelSize.z );
+				float2 appendResult36_g1 = (float2(( texCoord1_g1.x + temp_output_31_0_g1 ) , texCoord1_g1.y));
+				float simplePerlin2D64_g1 = snoise( texCoord1_g1*40.0 );
+				simplePerlin2D64_g1 = simplePerlin2D64_g1*0.5 + 0.5;
+				float temp_output_71_0_g1 = ( -simplePerlin2D64_g1 * _EdgeNoise );
+				float2 appendResult37_g1 = (float2(( texCoord1_g1.x - temp_output_31_0_g1 ) , texCoord1_g1.y));
+				float3 appendResult48_g1 = (float3(_Vector0.x , _Vector0.y , ( ( ( tex2D( _DecalColorMap, appendResult36_g1 ).r + temp_output_71_0_g1 ) * 5.0 ) - ( ( tex2D( _DecalColorMap, appendResult37_g1 ).r + temp_output_71_0_g1 ) * 5.0 ) )));
+				float3 normalizeResult50_g1 = normalize( appendResult48_g1 );
+				float2 appendResult40_g1 = (float2(texCoord1_g1.x , ( texCoord1_g1.y + temp_output_31_0_g1 )));
+				float2 appendResult41_g1 = (float2(texCoord1_g1.x , ( texCoord1_g1.y - temp_output_31_0_g1 )));
+				float3 appendResult49_g1 = (float3(_Vector0.y , _Vector0.x , ( ( ( tex2D( _DecalColorMap, appendResult40_g1 ).r + temp_output_71_0_g1 ) * 5.0 ) - ( ( tex2D( _DecalColorMap, appendResult41_g1 ).r + temp_output_71_0_g1 ) * 5.0 ) )));
+				float3 normalizeResult51_g1 = normalize( appendResult49_g1 );
+				float3 temp_output_52_0_g1 = cross( normalizeResult50_g1 , normalizeResult51_g1 );
+				float3 ase_worldTangent = IN.ase_texcoord5.xyz;
+				float3 ase_worldNormal = IN.ase_texcoord6.xyz;
 				float3 ase_worldBitangent = IN.ase_texcoord7.xyz;
-				float3x3 ase_worldToTangent = float3x3(ase_worldTangent,ase_worldBitangent,ase_worldNormal);
-				float3 worldToTangentDir42_g2 = mul( ase_worldToTangent, localPerturbNormal107_g2);
-				float3 temp_output_11_40_g1 = worldToTangentDir42_g2;
 				float3 tanToWorld0 = float3( ase_worldTangent.x, ase_worldBitangent.x, ase_worldNormal.x );
 				float3 tanToWorld1 = float3( ase_worldTangent.y, ase_worldBitangent.y, ase_worldNormal.y );
 				float3 tanToWorld2 = float3( ase_worldTangent.z, ase_worldBitangent.z, ase_worldNormal.z );
-				float3 tanNormal26_g1 = temp_output_11_40_g1;
+				float3 tanNormal26_g1 = temp_output_52_0_g1;
 				float3 worldNormal26_g1 = float3(dot(tanToWorld0,tanNormal26_g1), dot(tanToWorld1,tanNormal26_g1), dot(tanToWorld2,tanNormal26_g1));
-				float4 lerpResult23_g1 = lerp( color22_g1 , color12_g1 , tex2D( _FluidMatcap, mul( unity_WorldToCamera, float4( worldNormal26_g1 , 0.0 ) ).xyz.xy ).r);
-				float smoothstepResult15_g1 = smoothstep( 0.1 , 0.3 , tex2DNode2_g1.r);
-				float smoothstepResult16_g1 = smoothstep( 1.0 , 0.2 , tex2DNode2_g1.r);
+				float2 _Vector1 = float2(0.5,0.5);
+				float4 lerpResult23_g1 = lerp( color22_g1 , color12_g1 , tex2D( _FluidMatcap, ( ( (mul( unity_WorldToCamera, float4( worldNormal26_g1 , 0.0 ) ).xyz).xy * _Vector1 ) + _Vector1 ) ).r);
+				float temp_output_57_0_g1 = ( ( tex2D( _DecalColorMap, texCoord1_g1 ).r + temp_output_71_0_g1 ) * 5.0 );
+				float smoothstepResult15_g1 = smoothstep( 0.1 , 0.3 , temp_output_57_0_g1);
+				float smoothstepResult16_g1 = smoothstep( 1.0 , 0.2 , temp_output_57_0_g1);
 				float4 lerpResult14 = lerp( tex2D( _MainTex, uv_MainTex ) , lerpResult23_g1 , ( ( smoothstepResult15_g1 * 0.7 ) * (0.7 + (smoothstepResult16_g1 - 0.0) * (1.0 - 0.7) / (1.0 - 0.0)) ));
 				
 
@@ -1892,7 +1939,6 @@ Shader "FluidSplatTest"
 			#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl"
 			#include "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/ShaderPass.hlsl"
 
-			#define ASE_NEEDS_FRAG_WORLD_POSITION
 			#define ASE_NEEDS_VERT_NORMAL
 
 
@@ -1925,6 +1971,8 @@ Shader "FluidSplatTest"
 
 			CBUFFER_START(UnityPerMaterial)
 			float4 _MainTex_ST;
+			float4 _DecalColorMap_TexelSize;
+			float _EdgeNoise;
 			#ifdef ASE_TRANSMISSION
 				float _TransmissionShadow;
 			#endif
@@ -1960,19 +2008,32 @@ Shader "FluidSplatTest"
 			sampler2D _FluidMatcap;
 
 
-			float3 PerturbNormal107_g2( float3 surf_pos, float3 surf_norm, float height, float scale )
+			float3 mod2D289( float3 x ) { return x - floor( x * ( 1.0 / 289.0 ) ) * 289.0; }
+			float2 mod2D289( float2 x ) { return x - floor( x * ( 1.0 / 289.0 ) ) * 289.0; }
+			float3 permute( float3 x ) { return mod2D289( ( ( x * 34.0 ) + 1.0 ) * x ); }
+			float snoise( float2 v )
 			{
-				// "Bump Mapping Unparametrized Surfaces on the GPU" by Morten S. Mikkelsen
-				float3 vSigmaS = ddx( surf_pos );
-				float3 vSigmaT = ddy( surf_pos );
-				float3 vN = surf_norm;
-				float3 vR1 = cross( vSigmaT , vN );
-				float3 vR2 = cross( vN , vSigmaS );
-				float fDet = dot( vSigmaS , vR1 );
-				float dBs = ddx( height );
-				float dBt = ddy( height );
-				float3 vSurfGrad = scale * 0.05 * sign( fDet ) * ( dBs * vR1 + dBt * vR2 );
-				return normalize ( abs( fDet ) * vN - vSurfGrad );
+				const float4 C = float4( 0.211324865405187, 0.366025403784439, -0.577350269189626, 0.024390243902439 );
+				float2 i = floor( v + dot( v, C.yy ) );
+				float2 x0 = v - i + dot( i, C.xx );
+				float2 i1;
+				i1 = ( x0.x > x0.y ) ? float2( 1.0, 0.0 ) : float2( 0.0, 1.0 );
+				float4 x12 = x0.xyxy + C.xxzz;
+				x12.xy -= i1;
+				i = mod2D289( i );
+				float3 p = permute( permute( i.y + float3( 0.0, i1.y, 1.0 ) ) + i.x + float3( 0.0, i1.x, 1.0 ) );
+				float3 m = max( 0.5 - float3( dot( x0, x0 ), dot( x12.xy, x12.xy ), dot( x12.zw, x12.zw ) ), 0.0 );
+				m = m * m;
+				m = m * m;
+				float3 x = 2.0 * frac( p * C.www ) - 1.0;
+				float3 h = abs( x ) - 0.5;
+				float3 ox = floor( x + 0.5 );
+				float3 a0 = x - ox;
+				m *= 1.79284291400159 - 0.85373472095314 * ( a0 * a0 + h * h );
+				float3 g;
+				g.x = a0.x * x0.x + h.x * x0.y;
+				g.yz = a0.yz * x12.xz + h.yz * x12.yw;
+				return 130.0 * dot( m, g );
 			}
 			
 
@@ -1983,10 +2044,10 @@ Shader "FluidSplatTest"
 				UNITY_TRANSFER_INSTANCE_ID( v, o );
 				UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO( o );
 
-				float3 ase_worldNormal = TransformObjectToWorldNormal(v.normalOS);
-				o.ase_texcoord3.xyz = ase_worldNormal;
 				float3 ase_worldTangent = TransformObjectToWorldDir(v.ase_tangent.xyz);
-				o.ase_texcoord4.xyz = ase_worldTangent;
+				o.ase_texcoord3.xyz = ase_worldTangent;
+				float3 ase_worldNormal = TransformObjectToWorldNormal(v.normalOS);
+				o.ase_texcoord4.xyz = ase_worldNormal;
 				float ase_vertexTangentSign = v.ase_tangent.w * ( unity_WorldTransformParams.w >= 0.0 ? 1.0 : -1.0 );
 				float3 ase_worldBitangent = cross( ase_worldNormal, ase_worldTangent ) * ase_vertexTangentSign;
 				o.ase_texcoord5.xyz = ase_worldBitangent;
@@ -2138,27 +2199,34 @@ Shader "FluidSplatTest"
 				float2 uv_MainTex = IN.ase_texcoord2.xy * _MainTex_ST.xy + _MainTex_ST.zw;
 				float4 color22_g1 = IsGammaSpace() ? float4(0.6603774,0.6603774,0.6603774,0) : float4(0.3936214,0.3936214,0.3936214,0);
 				float4 color12_g1 = IsGammaSpace() ? float4(1,1,1,0) : float4(1,1,1,0);
-				float3 surf_pos107_g2 = WorldPosition;
-				float3 ase_worldNormal = IN.ase_texcoord3.xyz;
-				float3 surf_norm107_g2 = ase_worldNormal;
+				float2 _Vector0 = float2(2,0);
 				float2 texCoord1_g1 = IN.ase_texcoord2.zw * float2( 1,1 ) + float2( 0,0 );
-				float4 tex2DNode2_g1 = tex2D( _DecalColorMap, texCoord1_g1 );
-				float height107_g2 = tex2DNode2_g1.r;
-				float scale107_g2 = 0.5;
-				float3 localPerturbNormal107_g2 = PerturbNormal107_g2( surf_pos107_g2 , surf_norm107_g2 , height107_g2 , scale107_g2 );
-				float3 ase_worldTangent = IN.ase_texcoord4.xyz;
+				float temp_output_31_0_g1 = ( 1.0 / _DecalColorMap_TexelSize.z );
+				float2 appendResult36_g1 = (float2(( texCoord1_g1.x + temp_output_31_0_g1 ) , texCoord1_g1.y));
+				float simplePerlin2D64_g1 = snoise( texCoord1_g1*40.0 );
+				simplePerlin2D64_g1 = simplePerlin2D64_g1*0.5 + 0.5;
+				float temp_output_71_0_g1 = ( -simplePerlin2D64_g1 * _EdgeNoise );
+				float2 appendResult37_g1 = (float2(( texCoord1_g1.x - temp_output_31_0_g1 ) , texCoord1_g1.y));
+				float3 appendResult48_g1 = (float3(_Vector0.x , _Vector0.y , ( ( ( tex2D( _DecalColorMap, appendResult36_g1 ).r + temp_output_71_0_g1 ) * 5.0 ) - ( ( tex2D( _DecalColorMap, appendResult37_g1 ).r + temp_output_71_0_g1 ) * 5.0 ) )));
+				float3 normalizeResult50_g1 = normalize( appendResult48_g1 );
+				float2 appendResult40_g1 = (float2(texCoord1_g1.x , ( texCoord1_g1.y + temp_output_31_0_g1 )));
+				float2 appendResult41_g1 = (float2(texCoord1_g1.x , ( texCoord1_g1.y - temp_output_31_0_g1 )));
+				float3 appendResult49_g1 = (float3(_Vector0.y , _Vector0.x , ( ( ( tex2D( _DecalColorMap, appendResult40_g1 ).r + temp_output_71_0_g1 ) * 5.0 ) - ( ( tex2D( _DecalColorMap, appendResult41_g1 ).r + temp_output_71_0_g1 ) * 5.0 ) )));
+				float3 normalizeResult51_g1 = normalize( appendResult49_g1 );
+				float3 temp_output_52_0_g1 = cross( normalizeResult50_g1 , normalizeResult51_g1 );
+				float3 ase_worldTangent = IN.ase_texcoord3.xyz;
+				float3 ase_worldNormal = IN.ase_texcoord4.xyz;
 				float3 ase_worldBitangent = IN.ase_texcoord5.xyz;
-				float3x3 ase_worldToTangent = float3x3(ase_worldTangent,ase_worldBitangent,ase_worldNormal);
-				float3 worldToTangentDir42_g2 = mul( ase_worldToTangent, localPerturbNormal107_g2);
-				float3 temp_output_11_40_g1 = worldToTangentDir42_g2;
 				float3 tanToWorld0 = float3( ase_worldTangent.x, ase_worldBitangent.x, ase_worldNormal.x );
 				float3 tanToWorld1 = float3( ase_worldTangent.y, ase_worldBitangent.y, ase_worldNormal.y );
 				float3 tanToWorld2 = float3( ase_worldTangent.z, ase_worldBitangent.z, ase_worldNormal.z );
-				float3 tanNormal26_g1 = temp_output_11_40_g1;
+				float3 tanNormal26_g1 = temp_output_52_0_g1;
 				float3 worldNormal26_g1 = float3(dot(tanToWorld0,tanNormal26_g1), dot(tanToWorld1,tanNormal26_g1), dot(tanToWorld2,tanNormal26_g1));
-				float4 lerpResult23_g1 = lerp( color22_g1 , color12_g1 , tex2D( _FluidMatcap, mul( unity_WorldToCamera, float4( worldNormal26_g1 , 0.0 ) ).xyz.xy ).r);
-				float smoothstepResult15_g1 = smoothstep( 0.1 , 0.3 , tex2DNode2_g1.r);
-				float smoothstepResult16_g1 = smoothstep( 1.0 , 0.2 , tex2DNode2_g1.r);
+				float2 _Vector1 = float2(0.5,0.5);
+				float4 lerpResult23_g1 = lerp( color22_g1 , color12_g1 , tex2D( _FluidMatcap, ( ( (mul( unity_WorldToCamera, float4( worldNormal26_g1 , 0.0 ) ).xyz).xy * _Vector1 ) + _Vector1 ) ).r);
+				float temp_output_57_0_g1 = ( ( tex2D( _DecalColorMap, texCoord1_g1 ).r + temp_output_71_0_g1 ) * 5.0 );
+				float smoothstepResult15_g1 = smoothstep( 0.1 , 0.3 , temp_output_57_0_g1);
+				float smoothstepResult16_g1 = smoothstep( 1.0 , 0.2 , temp_output_57_0_g1);
 				float4 lerpResult14 = lerp( tex2D( _MainTex, uv_MainTex ) , lerpResult23_g1 , ( ( smoothstepResult15_g1 * 0.7 ) * (0.7 + (smoothstepResult16_g1 - 0.0) * (1.0 - 0.7) / (1.0 - 0.0)) ));
 				
 
@@ -2253,12 +2321,7 @@ Shader "FluidSplatTest"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/LODCrossFade.hlsl"
             #endif
 
-			#define ASE_NEEDS_FRAG_WORLD_POSITION
-			#define ASE_NEEDS_FRAG_WORLD_NORMAL
-			#define ASE_NEEDS_FRAG_WORLD_TANGENT
-			#define ASE_NEEDS_VERT_NORMAL
-			#define ASE_NEEDS_VERT_TANGENT
-
+			
 
 			#if defined(ASE_EARLY_Z_DEPTH_OPTIMIZE) && (SHADER_TARGET >= 45)
 				#define ASE_SV_DEPTH SV_DepthLessEqual
@@ -2290,13 +2353,14 @@ Shader "FluidSplatTest"
 					float4 shadowCoord : TEXCOORD4;
 				#endif
 				float4 ase_texcoord5 : TEXCOORD5;
-				float4 ase_texcoord6 : TEXCOORD6;
 				UNITY_VERTEX_INPUT_INSTANCE_ID
 				UNITY_VERTEX_OUTPUT_STEREO
 			};
 
 			CBUFFER_START(UnityPerMaterial)
 			float4 _MainTex_ST;
+			float4 _DecalColorMap_TexelSize;
+			float _EdgeNoise;
 			#ifdef ASE_TRANSMISSION
 				float _TransmissionShadow;
 			#endif
@@ -2330,19 +2394,32 @@ Shader "FluidSplatTest"
 			sampler2D _DecalColorMap;
 
 
-			float3 PerturbNormal107_g2( float3 surf_pos, float3 surf_norm, float height, float scale )
+			float3 mod2D289( float3 x ) { return x - floor( x * ( 1.0 / 289.0 ) ) * 289.0; }
+			float2 mod2D289( float2 x ) { return x - floor( x * ( 1.0 / 289.0 ) ) * 289.0; }
+			float3 permute( float3 x ) { return mod2D289( ( ( x * 34.0 ) + 1.0 ) * x ); }
+			float snoise( float2 v )
 			{
-				// "Bump Mapping Unparametrized Surfaces on the GPU" by Morten S. Mikkelsen
-				float3 vSigmaS = ddx( surf_pos );
-				float3 vSigmaT = ddy( surf_pos );
-				float3 vN = surf_norm;
-				float3 vR1 = cross( vSigmaT , vN );
-				float3 vR2 = cross( vN , vSigmaS );
-				float fDet = dot( vSigmaS , vR1 );
-				float dBs = ddx( height );
-				float dBt = ddy( height );
-				float3 vSurfGrad = scale * 0.05 * sign( fDet ) * ( dBs * vR1 + dBt * vR2 );
-				return normalize ( abs( fDet ) * vN - vSurfGrad );
+				const float4 C = float4( 0.211324865405187, 0.366025403784439, -0.577350269189626, 0.024390243902439 );
+				float2 i = floor( v + dot( v, C.yy ) );
+				float2 x0 = v - i + dot( i, C.xx );
+				float2 i1;
+				i1 = ( x0.x > x0.y ) ? float2( 1.0, 0.0 ) : float2( 0.0, 1.0 );
+				float4 x12 = x0.xyxy + C.xxzz;
+				x12.xy -= i1;
+				i = mod2D289( i );
+				float3 p = permute( permute( i.y + float3( 0.0, i1.y, 1.0 ) ) + i.x + float3( 0.0, i1.x, 1.0 ) );
+				float3 m = max( 0.5 - float3( dot( x0, x0 ), dot( x12.xy, x12.xy ), dot( x12.zw, x12.zw ) ), 0.0 );
+				m = m * m;
+				m = m * m;
+				float3 x = 2.0 * frac( p * C.www ) - 1.0;
+				float3 h = abs( x ) - 0.5;
+				float3 ox = floor( x + 0.5 );
+				float3 a0 = x - ox;
+				m *= 1.79284291400159 - 0.85373472095314 * ( a0 * a0 + h * h );
+				float3 g;
+				g.x = a0.x * x0.x + h.x * x0.y;
+				g.yz = a0.yz * x12.xz + h.yz * x12.yw;
+				return 130.0 * dot( m, g );
 			}
 			
 
@@ -2353,17 +2430,10 @@ Shader "FluidSplatTest"
 				UNITY_TRANSFER_INSTANCE_ID(v, o);
 				UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
 
-				float3 ase_worldNormal = TransformObjectToWorldNormal(v.normalOS);
-				float3 ase_worldTangent = TransformObjectToWorldDir(v.tangentOS.xyz);
-				float ase_vertexTangentSign = v.tangentOS.w * ( unity_WorldTransformParams.w >= 0.0 ? 1.0 : -1.0 );
-				float3 ase_worldBitangent = cross( ase_worldNormal, ase_worldTangent ) * ase_vertexTangentSign;
-				o.ase_texcoord6.xyz = ase_worldBitangent;
-				
 				o.ase_texcoord5.xy = v.ase_texcoord1.xy;
 				
 				//setting value to unused interpolator channels and avoid initialization warnings
 				o.ase_texcoord5.zw = 0;
-				o.ase_texcoord6.w = 0;
 				#ifdef ASE_ABSOLUTE_VERTEX_POS
 					float3 defaultVertexValue = v.positionOS.xyz;
 				#else
@@ -2517,20 +2587,24 @@ Shader "FluidSplatTest"
 					#endif
 				#endif
 
-				float3 surf_pos107_g2 = WorldPosition;
-				float3 surf_norm107_g2 = WorldNormal;
+				float2 _Vector0 = float2(2,0);
 				float2 texCoord1_g1 = IN.ase_texcoord5.xy * float2( 1,1 ) + float2( 0,0 );
-				float4 tex2DNode2_g1 = tex2D( _DecalColorMap, texCoord1_g1 );
-				float height107_g2 = tex2DNode2_g1.r;
-				float scale107_g2 = 0.5;
-				float3 localPerturbNormal107_g2 = PerturbNormal107_g2( surf_pos107_g2 , surf_norm107_g2 , height107_g2 , scale107_g2 );
-				float3 ase_worldBitangent = IN.ase_texcoord6.xyz;
-				float3x3 ase_worldToTangent = float3x3(WorldTangent.xyz,ase_worldBitangent,WorldNormal);
-				float3 worldToTangentDir42_g2 = mul( ase_worldToTangent, localPerturbNormal107_g2);
-				float3 temp_output_11_40_g1 = worldToTangentDir42_g2;
+				float temp_output_31_0_g1 = ( 1.0 / _DecalColorMap_TexelSize.z );
+				float2 appendResult36_g1 = (float2(( texCoord1_g1.x + temp_output_31_0_g1 ) , texCoord1_g1.y));
+				float simplePerlin2D64_g1 = snoise( texCoord1_g1*40.0 );
+				simplePerlin2D64_g1 = simplePerlin2D64_g1*0.5 + 0.5;
+				float temp_output_71_0_g1 = ( -simplePerlin2D64_g1 * _EdgeNoise );
+				float2 appendResult37_g1 = (float2(( texCoord1_g1.x - temp_output_31_0_g1 ) , texCoord1_g1.y));
+				float3 appendResult48_g1 = (float3(_Vector0.x , _Vector0.y , ( ( ( tex2D( _DecalColorMap, appendResult36_g1 ).r + temp_output_71_0_g1 ) * 5.0 ) - ( ( tex2D( _DecalColorMap, appendResult37_g1 ).r + temp_output_71_0_g1 ) * 5.0 ) )));
+				float3 normalizeResult50_g1 = normalize( appendResult48_g1 );
+				float2 appendResult40_g1 = (float2(texCoord1_g1.x , ( texCoord1_g1.y + temp_output_31_0_g1 )));
+				float2 appendResult41_g1 = (float2(texCoord1_g1.x , ( texCoord1_g1.y - temp_output_31_0_g1 )));
+				float3 appendResult49_g1 = (float3(_Vector0.y , _Vector0.x , ( ( ( tex2D( _DecalColorMap, appendResult40_g1 ).r + temp_output_71_0_g1 ) * 5.0 ) - ( ( tex2D( _DecalColorMap, appendResult41_g1 ).r + temp_output_71_0_g1 ) * 5.0 ) )));
+				float3 normalizeResult51_g1 = normalize( appendResult49_g1 );
+				float3 temp_output_52_0_g1 = cross( normalizeResult50_g1 , normalizeResult51_g1 );
 				
 
-				float3 Normal = temp_output_11_40_g1;
+				float3 Normal = temp_output_52_0_g1;
 				float Alpha = 1;
 				float AlphaClipThreshold = 0.5;
 
@@ -2686,9 +2760,8 @@ Shader "FluidSplatTest"
 				#define ENABLE_TERRAIN_PERPIXEL_NORMAL
 			#endif
 
-			#define ASE_NEEDS_FRAG_WORLD_POSITION
-			#define ASE_NEEDS_FRAG_WORLD_NORMAL
 			#define ASE_NEEDS_FRAG_WORLD_TANGENT
+			#define ASE_NEEDS_FRAG_WORLD_NORMAL
 			#define ASE_NEEDS_FRAG_WORLD_BITANGENT
 
 
@@ -2734,6 +2807,8 @@ Shader "FluidSplatTest"
 
 			CBUFFER_START(UnityPerMaterial)
 			float4 _MainTex_ST;
+			float4 _DecalColorMap_TexelSize;
+			float _EdgeNoise;
 			#ifdef ASE_TRANSMISSION
 				float _TransmissionShadow;
 			#endif
@@ -2771,19 +2846,32 @@ Shader "FluidSplatTest"
 
 			#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UnityGBuffer.hlsl"
 
-			float3 PerturbNormal107_g2( float3 surf_pos, float3 surf_norm, float height, float scale )
+			float3 mod2D289( float3 x ) { return x - floor( x * ( 1.0 / 289.0 ) ) * 289.0; }
+			float2 mod2D289( float2 x ) { return x - floor( x * ( 1.0 / 289.0 ) ) * 289.0; }
+			float3 permute( float3 x ) { return mod2D289( ( ( x * 34.0 ) + 1.0 ) * x ); }
+			float snoise( float2 v )
 			{
-				// "Bump Mapping Unparametrized Surfaces on the GPU" by Morten S. Mikkelsen
-				float3 vSigmaS = ddx( surf_pos );
-				float3 vSigmaT = ddy( surf_pos );
-				float3 vN = surf_norm;
-				float3 vR1 = cross( vSigmaT , vN );
-				float3 vR2 = cross( vN , vSigmaS );
-				float fDet = dot( vSigmaS , vR1 );
-				float dBs = ddx( height );
-				float dBt = ddy( height );
-				float3 vSurfGrad = scale * 0.05 * sign( fDet ) * ( dBs * vR1 + dBt * vR2 );
-				return normalize ( abs( fDet ) * vN - vSurfGrad );
+				const float4 C = float4( 0.211324865405187, 0.366025403784439, -0.577350269189626, 0.024390243902439 );
+				float2 i = floor( v + dot( v, C.yy ) );
+				float2 x0 = v - i + dot( i, C.xx );
+				float2 i1;
+				i1 = ( x0.x > x0.y ) ? float2( 1.0, 0.0 ) : float2( 0.0, 1.0 );
+				float4 x12 = x0.xyxy + C.xxzz;
+				x12.xy -= i1;
+				i = mod2D289( i );
+				float3 p = permute( permute( i.y + float3( 0.0, i1.y, 1.0 ) ) + i.x + float3( 0.0, i1.x, 1.0 ) );
+				float3 m = max( 0.5 - float3( dot( x0, x0 ), dot( x12.xy, x12.xy ), dot( x12.zw, x12.zw ) ), 0.0 );
+				m = m * m;
+				m = m * m;
+				float3 x = 2.0 * frac( p * C.www ) - 1.0;
+				float3 h = abs( x ) - 0.5;
+				float3 ox = floor( x + 0.5 );
+				float3 a0 = x - ox;
+				m *= 1.79284291400159 - 0.85373472095314 * ( a0 * a0 + h * h );
+				float3 g;
+				g.x = a0.x * x0.x + h.x * x0.y;
+				g.yz = a0.yz * x12.xz + h.yz * x12.yw;
+				return 130.0 * dot( m, g );
 			}
 			
 
@@ -2987,29 +3075,36 @@ Shader "FluidSplatTest"
 				float2 uv_MainTex = IN.ase_texcoord8.xy * _MainTex_ST.xy + _MainTex_ST.zw;
 				float4 color22_g1 = IsGammaSpace() ? float4(0.6603774,0.6603774,0.6603774,0) : float4(0.3936214,0.3936214,0.3936214,0);
 				float4 color12_g1 = IsGammaSpace() ? float4(1,1,1,0) : float4(1,1,1,0);
-				float3 surf_pos107_g2 = WorldPosition;
-				float3 surf_norm107_g2 = WorldNormal;
+				float2 _Vector0 = float2(2,0);
 				float2 texCoord1_g1 = IN.ase_texcoord8.zw * float2( 1,1 ) + float2( 0,0 );
-				float4 tex2DNode2_g1 = tex2D( _DecalColorMap, texCoord1_g1 );
-				float height107_g2 = tex2DNode2_g1.r;
-				float scale107_g2 = 0.5;
-				float3 localPerturbNormal107_g2 = PerturbNormal107_g2( surf_pos107_g2 , surf_norm107_g2 , height107_g2 , scale107_g2 );
-				float3x3 ase_worldToTangent = float3x3(WorldTangent,WorldBiTangent,WorldNormal);
-				float3 worldToTangentDir42_g2 = mul( ase_worldToTangent, localPerturbNormal107_g2);
-				float3 temp_output_11_40_g1 = worldToTangentDir42_g2;
+				float temp_output_31_0_g1 = ( 1.0 / _DecalColorMap_TexelSize.z );
+				float2 appendResult36_g1 = (float2(( texCoord1_g1.x + temp_output_31_0_g1 ) , texCoord1_g1.y));
+				float simplePerlin2D64_g1 = snoise( texCoord1_g1*40.0 );
+				simplePerlin2D64_g1 = simplePerlin2D64_g1*0.5 + 0.5;
+				float temp_output_71_0_g1 = ( -simplePerlin2D64_g1 * _EdgeNoise );
+				float2 appendResult37_g1 = (float2(( texCoord1_g1.x - temp_output_31_0_g1 ) , texCoord1_g1.y));
+				float3 appendResult48_g1 = (float3(_Vector0.x , _Vector0.y , ( ( ( tex2D( _DecalColorMap, appendResult36_g1 ).r + temp_output_71_0_g1 ) * 5.0 ) - ( ( tex2D( _DecalColorMap, appendResult37_g1 ).r + temp_output_71_0_g1 ) * 5.0 ) )));
+				float3 normalizeResult50_g1 = normalize( appendResult48_g1 );
+				float2 appendResult40_g1 = (float2(texCoord1_g1.x , ( texCoord1_g1.y + temp_output_31_0_g1 )));
+				float2 appendResult41_g1 = (float2(texCoord1_g1.x , ( texCoord1_g1.y - temp_output_31_0_g1 )));
+				float3 appendResult49_g1 = (float3(_Vector0.y , _Vector0.x , ( ( ( tex2D( _DecalColorMap, appendResult40_g1 ).r + temp_output_71_0_g1 ) * 5.0 ) - ( ( tex2D( _DecalColorMap, appendResult41_g1 ).r + temp_output_71_0_g1 ) * 5.0 ) )));
+				float3 normalizeResult51_g1 = normalize( appendResult49_g1 );
+				float3 temp_output_52_0_g1 = cross( normalizeResult50_g1 , normalizeResult51_g1 );
 				float3 tanToWorld0 = float3( WorldTangent.x, WorldBiTangent.x, WorldNormal.x );
 				float3 tanToWorld1 = float3( WorldTangent.y, WorldBiTangent.y, WorldNormal.y );
 				float3 tanToWorld2 = float3( WorldTangent.z, WorldBiTangent.z, WorldNormal.z );
-				float3 tanNormal26_g1 = temp_output_11_40_g1;
+				float3 tanNormal26_g1 = temp_output_52_0_g1;
 				float3 worldNormal26_g1 = float3(dot(tanToWorld0,tanNormal26_g1), dot(tanToWorld1,tanNormal26_g1), dot(tanToWorld2,tanNormal26_g1));
-				float4 lerpResult23_g1 = lerp( color22_g1 , color12_g1 , tex2D( _FluidMatcap, mul( unity_WorldToCamera, float4( worldNormal26_g1 , 0.0 ) ).xyz.xy ).r);
-				float smoothstepResult15_g1 = smoothstep( 0.1 , 0.3 , tex2DNode2_g1.r);
-				float smoothstepResult16_g1 = smoothstep( 1.0 , 0.2 , tex2DNode2_g1.r);
+				float2 _Vector1 = float2(0.5,0.5);
+				float4 lerpResult23_g1 = lerp( color22_g1 , color12_g1 , tex2D( _FluidMatcap, ( ( (mul( unity_WorldToCamera, float4( worldNormal26_g1 , 0.0 ) ).xyz).xy * _Vector1 ) + _Vector1 ) ).r);
+				float temp_output_57_0_g1 = ( ( tex2D( _DecalColorMap, texCoord1_g1 ).r + temp_output_71_0_g1 ) * 5.0 );
+				float smoothstepResult15_g1 = smoothstep( 0.1 , 0.3 , temp_output_57_0_g1);
+				float smoothstepResult16_g1 = smoothstep( 1.0 , 0.2 , temp_output_57_0_g1);
 				float4 lerpResult14 = lerp( tex2D( _MainTex, uv_MainTex ) , lerpResult23_g1 , ( ( smoothstepResult15_g1 * 0.7 ) * (0.7 + (smoothstepResult16_g1 - 0.0) * (1.0 - 0.7) / (1.0 - 0.0)) ));
 				
 
 				float3 BaseColor = lerpResult14.rgb;
-				float3 Normal = temp_output_11_40_g1;
+				float3 Normal = temp_output_52_0_g1;
 				float3 Emission = 0;
 				float3 Specular = 0.5;
 				float Metallic = 0;
@@ -3200,6 +3295,8 @@ Shader "FluidSplatTest"
 
 			CBUFFER_START(UnityPerMaterial)
 			float4 _MainTex_ST;
+			float4 _DecalColorMap_TexelSize;
+			float _EdgeNoise;
 			#ifdef ASE_TRANSMISSION
 				float _TransmissionShadow;
 			#endif
@@ -3465,6 +3562,8 @@ Shader "FluidSplatTest"
 
 			CBUFFER_START(UnityPerMaterial)
 			float4 _MainTex_ST;
+			float4 _DecalColorMap_TexelSize;
+			float _EdgeNoise;
 			#ifdef ASE_TRANSMISSION
 				float _TransmissionShadow;
 			#endif
@@ -3657,7 +3756,7 @@ Shader "FluidSplatTest"
 }
 /*ASEBEGIN
 Version=19603
-Node;AmplifyShaderEditor.SamplerNode;11;-592,-176;Inherit;True;Property;_MainTex;MainTex;0;0;Create;True;0;0;0;False;0;False;-1;None;None;True;0;False;white;Auto;False;Object;-1;Auto;Texture2D;8;0;SAMPLER2D;;False;1;FLOAT2;0,0;False;2;FLOAT;0;False;3;FLOAT2;0,0;False;4;FLOAT2;0,0;False;5;FLOAT;1;False;6;FLOAT;0;False;7;SAMPLERSTATE;;False;6;COLOR;0;FLOAT;1;FLOAT;2;FLOAT;3;FLOAT;4;FLOAT3;5
+Node;AmplifyShaderEditor.SamplerNode;11;-592,-176;Inherit;True;Property;_MainTex;MainTex;0;0;Create;True;0;0;0;False;0;False;-1;None;0000000000000000f000000000000000;True;0;False;white;Auto;False;Object;-1;Auto;Texture2D;8;0;SAMPLER2D;;False;1;FLOAT2;0,0;False;2;FLOAT;0;False;3;FLOAT2;0,0;False;4;FLOAT2;0,0;False;5;FLOAT;1;False;6;FLOAT;0;False;7;SAMPLERSTATE;;False;6;COLOR;0;FLOAT;1;FLOAT;2;FLOAT;3;FLOAT;4;FLOAT3;5
 Node;AmplifyShaderEditor.LerpOp;14;-252,26.5;Inherit;False;3;0;COLOR;0,0,0,0;False;1;COLOR;0,0,0,0;False;2;FLOAT;0;False;1;COLOR;0
 Node;AmplifyShaderEditor.FunctionNode;13;-512,128;Inherit;False;FluidSplat;1;;1;1c0653a8fede64c4889ada40d0572ba1;0;0;4;COLOR;0;FLOAT;4;FLOAT;5;FLOAT3;6
 Node;AmplifyShaderEditor.TemplateMultiPassMasterNode;1;0,0;Float;False;False;-1;2;UnityEditor.ShaderGraphLitGUI;0;12;New Amplify Shader;94348b07e5e8bab40bd6c8a1e3df54cd;True;ExtraPrePass;0;0;ExtraPrePass;5;False;False;False;False;False;False;False;False;False;False;False;False;True;0;False;;False;True;0;False;;False;False;False;False;False;False;False;False;False;True;False;0;False;;255;False;;255;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;False;True;1;False;;True;3;False;;True;True;0;False;;0;False;;True;4;RenderPipeline=UniversalPipeline;RenderType=Opaque=RenderType;Queue=Geometry=Queue=0;UniversalMaterialType=Lit;True;5;True;12;all;0;False;True;1;1;False;;0;False;;0;1;False;;0;False;;False;False;False;False;False;False;False;False;False;False;False;False;True;0;False;;False;True;True;True;True;True;0;False;;False;False;False;False;False;False;False;True;False;0;False;;255;False;;255;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;False;True;1;False;;True;3;False;;True;True;0;False;;0;False;;True;0;False;False;0;;0;0;Standard;0;False;0
@@ -3677,4 +3776,4 @@ WireConnection;2;0;14;0
 WireConnection;2;1;13;6
 WireConnection;2;4;13;4
 ASEEND*/
-//CHKSM=71854D175C7C6BC64645F76CEDA17443F77FEF39
+//CHKSM=C2349F2E56888D64C5C651D0C698DE6252D81B29
