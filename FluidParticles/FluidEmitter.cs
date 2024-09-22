@@ -13,6 +13,7 @@ public class FluidEmitter : MonoBehaviour {
     [SerializeField] private Material particleMaterial;
     [SerializeField] private FluidParticleSystemSettings fluidParticleSystemSettings;
     [SerializeField] private LayerMask decalableHitMask = ~0;
+    [SerializeField, Range(0f,1f)] private float _volume;
     [SerializeField, Range(0f,5f)] private float _strength;
     
     private FluidParticleSystem _fluidParticleSystem;
@@ -36,7 +37,7 @@ public class FluidEmitter : MonoBehaviour {
             if (!rend) continue;
             PaintDecal.RenderDecal(rend, 
                 new DecalProjector(DecalProjectorType.SphereAlpha, new Color(1,1,1,0.2f)), 
-                new DecalProjection(hit.point, -hit.normal, particlevolume*0.03f)
+                new DecalProjection(hit.point, -hit.normal, particlevolume*fluidParticleSystemSettings.splatSize)
                 );
         }
     }
@@ -92,7 +93,8 @@ public class FluidEmitter : MonoBehaviour {
                 transform.forward, 
                 _previousForward, 
                 _strength, 
-                _previousStrength, 
+                _previousStrength,
+                _volume,
                 (float)i/subParticles,
                 i==0
                 );
@@ -105,6 +107,10 @@ public class FluidEmitter : MonoBehaviour {
 
     public void SetStrength(float strength) {
         _strength = strength;
+    }
+    
+    public void SetVolume(float volume) {
+        _volume = volume;
     }
     
 }

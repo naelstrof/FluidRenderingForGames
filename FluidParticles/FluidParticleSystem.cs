@@ -84,7 +84,17 @@ public class FluidParticleSystem {
         return noise;
     }
     
-    public void SpawnParticle(Vector3 position, Vector3 previousPosition, Vector3 forward, Vector3 previousForward, float strength, float previousStrength, float subT = 0f, bool colliding = false) {
+    public void SpawnParticle(
+        Vector3 position,
+        Vector3 previousPosition,
+        Vector3 forward,
+        Vector3 previousForward,
+        float strength,
+        float previousStrength,
+        float volume,
+        float subT = 0f,
+        bool colliding = false
+        ) {
         var subTime = Time.timeSinceLevelLoad - Time.deltaTime * subT;
         var velocityNoise = Vector3.one*(1f-_fluidParticleSystemSettings.noiseStrength*0.5f)+GenerateVelocityNoise(subTime)*_fluidParticleSystemSettings.noiseStrength;
         var velocity = Vector3.Lerp(forward, previousForward, subT);
@@ -92,7 +102,7 @@ public class FluidParticleSystem {
         velocity = velocity * Mathf.Lerp(strength, previousStrength, subT);
         _particles[_particleSpawnIndex] = new Particle {
             position = Vector3.Lerp(position, previousPosition, subT) - velocity * Time.deltaTime,
-            volume = strength*(1f-velocityNoise.x*0.5f)
+            volume = volume*(1f-velocityNoise.x*0.5f)
         };
         _particlePhysics[_particleSpawnIndex] = new ParticlePhysics {
             velocity = velocity,
