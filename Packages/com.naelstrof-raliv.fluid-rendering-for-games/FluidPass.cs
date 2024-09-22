@@ -5,7 +5,6 @@ using UnityEngine.Rendering.Universal;
 
 public class FluidPass : ScriptableRenderPass {
     private Material material;
-    private Texture fluidMatcap;
     private LayerMask fluidVFXLayerMask;
     
     private ProfilingSampler m_ProfilingSampler = new ProfilingSampler("FluidRendering_RenderFeature");
@@ -18,13 +17,11 @@ public class FluidPass : ScriptableRenderPass {
     public FluidPass(
         RenderPassEvent renderPassEvent, 
         Material material, 
-        LayerMask fluidVFXLayerMask, 
-        Texture fluidMatcap
+        LayerMask fluidVFXLayerMask
         ) {
         this.material = material;
         this.renderPassEvent = renderPassEvent;
         this.fluidVFXLayerMask = fluidVFXLayerMask;
-        this.fluidMatcap = fluidMatcap;
         shaderTags = new ShaderTagId[] {
             new("UniversalForward"),
             new("UniversalForwardOnly"),
@@ -67,7 +64,6 @@ public class FluidPass : ScriptableRenderPass {
         
         CommandBuffer cmd = CommandBufferPool.Get();
         using (new ProfilingScope(cmd, m_ProfilingSampler)) {
-            Shader.SetGlobalTexture("_FluidMatcap", fluidMatcap);
             CoreUtils.SetRenderTarget(cmd, m_FluidBuffer, m_CameraDepthTarget);
             CoreUtils.ClearRenderTarget(cmd, ClearFlag.Color, Color.black);
             { // FLUID VFX PASS

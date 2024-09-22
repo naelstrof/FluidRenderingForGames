@@ -2603,7 +2603,7 @@
     "m_RefNameGeneratedByDisplayName": "FluidMatcap",
     "m_DefaultReferenceName": "_FluidMatcap",
     "m_OverrideReferenceName": "",
-    "m_GeneratePropertyBlock": false,
+    "m_GeneratePropertyBlock": true,
     "m_UseCustomSlotLabel": false,
     "m_CustomSlotLabel": "",
     "m_DismissedVersion": 0,
@@ -2612,7 +2612,7 @@
     "hlslDeclarationOverride": 0,
     "m_Hidden": false,
     "m_Value": {
-        "m_SerializedTexture": "{\"texture\":{\"fileID\":2800000,\"guid\":\"4ffd2f3097de91c4097c81d86ea3af6e\",\"type\":3}}",
+        "m_SerializedTexture": "{\"texture\":{\"fileID\":2800000,\"guid\":\"b4f9122160d0c5343a8feb50a0dc201e\",\"type\":3}}",
         "m_Guid": ""
     },
     "isMainTexture": false,

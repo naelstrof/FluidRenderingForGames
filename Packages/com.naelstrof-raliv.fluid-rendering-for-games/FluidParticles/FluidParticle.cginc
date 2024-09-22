@@ -2,7 +2,6 @@
 #define FLUIDPARTICLES
 
 struct Particle {
-    int index;
     float3 position;
     float volume;
 };

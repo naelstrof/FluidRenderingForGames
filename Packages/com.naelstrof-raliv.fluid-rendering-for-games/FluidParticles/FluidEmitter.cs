@@ -3,9 +3,12 @@ using System.Collections;
 using System.Collections.Generic;
 using SkinnedMeshDecals;
 using UnityEngine;
+using UnityEngine.Rendering;
+using DecalProjector = SkinnedMeshDecals.DecalProjector;
 
 #if UNITY_EDITOR
 using UnityEditor;
+using UnityEngine.Rendering.Universal;
 #endif
 
 public class FluidEmitter : MonoBehaviour {
@@ -22,17 +25,26 @@ public class FluidEmitter : MonoBehaviour {
     private float _previousStrength;
     private bool rendered = false;
     private SceneView targetSceneView;
+    private bool printedConfigurationIssue = false;
 
     private void OnEnable() {
 #if UNITY_EDITOR
         EditorApplication.pauseStateChanged += OnPauseChanged;
 #endif
-        _fluidParticleSystem = new FluidParticleSystem(particleMaterial, fluidParticleSystemSettings, decalableHitMask);
+        _fluidParticleSystem = new FluidParticleSystemEuler(particleMaterial, fluidParticleSystemSettings, decalableHitMask);
         _fluidParticleSystem.particleCollisionEvent += OnFluidCollision;
     }
 
     private void OnFluidCollision(RaycastHit hit, float particlevolume) {
-        if (!hit.collider.TryGetComponent(out DecalableCollider decalableCollider)) return;
+        if (!hit.collider.TryGetComponent(out DecalableCollider decalableCollider)) {
+#if UNITY_EDITOR
+            if (printedConfigurationIssue) return;
+            Debug.LogWarning($"No decalable collider found on {hit.collider}. <color=cyan>Please configure using a DecalableCollider Monobehavior, or set up your layers to be more specific!</color>", hit.collider.gameObject);
+            printedConfigurationIssue = true;
+#endif
+            return;
+        }
+
         foreach (var rend in decalableCollider.decalableRenderers) {
             if (!rend) continue;
             var particleSize = particlevolume * fluidParticleSystemSettings.splatSize;

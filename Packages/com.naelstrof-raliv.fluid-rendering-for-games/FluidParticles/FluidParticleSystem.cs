@@ -1,31 +1,30 @@
 using System;
-using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using UnityEngine;
 using UnityEngine.Rendering;
-using Random = UnityEngine.Random;
+using UnityEngine.Rendering.Universal;
 
-public class FluidParticleSystem {
-    
-    const int particleCountMax = 3000;
+public abstract class FluidParticleSystem {
     public delegate void ParticleCollisionEventDelegate(RaycastHit hit, float particleVolume);
+
+    protected int particleCountMax;
 
     //[SerializeField] private LightProbeProxyVolume lightProbeVolume;
 
     [Serializable]
-    private struct Particle {
-        public int index;
+    protected struct Particle {
         public Vector3 position;
         public float volume;
     }
 
-    private struct ParticlePhysics {
+    protected struct ParticlePhysics {
+        public Vector3 lastPosition;
         public Vector3 velocity;
         public bool Colliding;
     }
 
-    private Particle[] _particles;
-    private ParticlePhysics[] _particlePhysics;
+    protected Particle[] _particles;
+    protected ParticlePhysics[] _particlePhysics;
     private Material _material;
     private GraphicsBuffer _particleBuffer;
     private MaterialPropertyBlock _materialPropertyBlock;
@@ -33,7 +32,7 @@ public class FluidParticleSystem {
     private int _particleSpawnIndex;
     private float _strength;
     private FluidParticleSystemSettings _fluidParticleSystemSettings;
-    private LayerMask _collisionLayerMask;
+    protected LayerMask _collisionLayerMask;
     
     private GraphicsBuffer _meshTriangles;
     private GraphicsBuffer _meshVertices;
@@ -48,7 +47,12 @@ public class FluidParticleSystem {
 
     public event ParticleCollisionEventDelegate particleCollisionEvent;
 
-    public FluidParticleSystem(Material material, FluidParticleSystemSettings fluidParticleSystemSettings, LayerMask collisionLayerMask) {
+    protected void TriggerParticleCollisionEvent(RaycastHit hit, float particleVolume) {
+        particleCollisionEvent?.Invoke(hit,particleVolume);
+    }
+
+    public FluidParticleSystem(Material material, FluidParticleSystemSettings fluidParticleSystemSettings, LayerMask collisionLayerMask, int particleCountMax = 3000) {
+        this.particleCountMax = particleCountMax;
         _collisionLayerMask = collisionLayerMask;
         _material = material;
         _fluidParticleSystemSettings = fluidParticleSystemSettings;
@@ -99,7 +103,7 @@ public class FluidParticleSystem {
         var velocityNoise = Vector3.one*(1f-_fluidParticleSystemSettings.noiseStrength*0.5f)+GenerateVelocityNoise(subTime)*_fluidParticleSystemSettings.noiseStrength;
         var velocity = Vector3.Lerp(forward, previousForward, subT);
         velocity.Scale(velocityNoise);
-        velocity = velocity * Mathf.Lerp(strength, previousStrength, subT);
+        velocity *= Mathf.Lerp(strength, previousStrength, subT);
         _particles[_particleSpawnIndex] = new Particle {
             position = Vector3.Lerp(position, previousPosition, subT) - velocity * Time.deltaTime,
             volume = volume*(1f-velocityNoise.x*0.5f)
@@ -114,31 +118,16 @@ public class FluidParticleSystem {
     }
 
     public void FixedUpdate() {
-        for (var index = 0; index < _particles.Length; index++) {
-            UpdateParticle(index);
-        }
+        UpdateParticles();
         _particleBuffer.SetData(_particles);
     }
 
-    void UpdateParticle(int index) {
-        var positionStep = _particlePhysics[index].velocity * Time.deltaTime;
-        if (_particlePhysics[index].Colliding) {
-            if (Physics.Raycast(_particles[index].position, positionStep, out var hit, positionStep.magnitude, _collisionLayerMask)) {
-                particleCollisionEvent?.Invoke(hit, _particles[index].volume);
-                var walk = index;
-                do {
-                    _particles[walk].volume = 0f;
-                    walk = (walk + 1) % _particlePhysics.Length;
-                } while (!_particlePhysics[walk].Colliding);
-            }
-        }
-        _particles[index].position += positionStep;
-        // TODO: can fade based on proximity to being respawned
-        //_particles[index].volume = Mathf.Max(0f, _particles[index].volume-Time.deltaTime*0.3f);
-        _particlePhysics[index].velocity += Physics.gravity * Time.deltaTime;
-    }
+    protected abstract void UpdateParticles();
 
     void Initialize() {
+        #if UNITY_EDITOR
+        FluidRenderingRendererFeature.EnsureLayersAreCorrect();
+        #endif
         // TODO: staticly initialize or separate out
         GenerateMeshData();
         _materialPropertyBlock ??= new MaterialPropertyBlock();
@@ -176,15 +165,15 @@ public class FluidParticleSystem {
     }
 
     private void GenerateMeshData() {
-        var vertices = new Vector3[] {
+        var vertices = new[] {
             Vector3.zero,
             Vector3.zero,
             Vector3.zero,
             Vector3.zero
         };
-        var normals = new Vector3[] {Vector3.forward, Vector3.forward, Vector3.forward,Vector3.forward};
-        var triangles = new int[] {0, 1, 2, 0, 2, 3};
-        var uvs = new Vector2[] {Vector2.up, Vector2.up + Vector2.right, Vector2.right, Vector2.zero};
+        var normals = new[] {Vector3.forward, Vector3.forward, Vector3.forward,Vector3.forward};
+        var triangles = new[] {0, 1, 2, 0, 2, 3};
+        var uvs = new[] {Vector2.up, Vector2.up + Vector2.right, Vector2.right, Vector2.zero};
         _meshVertices = new GraphicsBuffer(GraphicsBuffer.Target.Structured, vertices.Length, Marshal.SizeOf<Vector3>());
         _meshVertices.SetData(vertices);
         _meshNormals = new GraphicsBuffer(GraphicsBuffer.Target.Structured, normals.Length, Marshal.SizeOf<Vector3>());

@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!114 &-4576926125809980126
+--- !u!114 &-6308686001769089713
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -13,11 +13,8 @@ MonoBehaviour:
   m_Name: FluidRenderingRendererFeature
   m_EditorClassIdentifier: 
   m_Active: 1
-  shader: {fileID: -6465566751694194690, guid: 76c810fc9a512c84ab240a1591c3de9d, type: 3}
-  fluidMatcap: {fileID: 2800000, guid: b4f9122160d0c5343a8feb50a0dc201e, type: 3}
-  fluidVFXLayerMask:
-    serializedVersion: 2
-    m_Bits: 64
+  fullscreenBlitMaterial: {fileID: 2100000, guid: e6cb23922d304c94e89fd2de80c7293a,
+    type: 2}
 --- !u!114 &-1878332245247344467
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -71,8 +68,8 @@ MonoBehaviour:
     hdrDebugViewPS: {fileID: 4800000, guid: 573620ae32aec764abd4d728906d2587, type: 3}
   m_RendererFeatures:
   - {fileID: -1878332245247344467}
-  - {fileID: -4576926125809980126}
-  m_RendererFeatureMap: adc0de57c6d2eee5222de42bf07d7bc0
+  - {fileID: -6308686001769089713}
+  m_RendererFeatureMap: adc0de57c6d2eee54ff51299810b73a8
   m_UseNativeRenderPass: 0
   postProcessData: {fileID: 11400000, guid: 41439944d30ece34e96484bdb6645b55, type: 2}
   xrSystemData: {fileID: 11400000, guid: 60e1133243b97e347b653163a8c01b64, type: 2}
