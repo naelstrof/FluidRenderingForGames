@@ -5,7 +5,6 @@ using UnityEngine.Rendering.Universal;
 
 public class FluidPass : ScriptableRenderPass {
     private Material material;
-    private Shader overrideShader;
     private Texture fluidMatcap;
     private LayerMask fluidVFXLayerMask;
     
@@ -20,11 +19,9 @@ public class FluidPass : ScriptableRenderPass {
         RenderPassEvent renderPassEvent, 
         Material material, 
         LayerMask fluidVFXLayerMask, 
-        Shader overrideShader,
         Texture fluidMatcap
         ) {
         this.material = material;
-        this.overrideShader = overrideShader;
         this.renderPassEvent = renderPassEvent;
         this.fluidVFXLayerMask = fluidVFXLayerMask;
         this.fluidMatcap = fluidMatcap;
