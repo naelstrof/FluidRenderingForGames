@@ -6,6 +6,7 @@ using UnityEditor;
 
 public class FluidRenderingRendererFeature : ScriptableRendererFeature {
     [SerializeField] private Material fullscreenBlitMaterial;
+    [SerializeField] private Texture fluidMatcap;
     private FluidPass _fluidPass;
     
     public override void Create() {
@@ -17,7 +18,7 @@ public class FluidRenderingRendererFeature : ScriptableRendererFeature {
 #endif
         
         _fluidPass = new FluidPass(RenderPassEvent.BeforeRenderingPostProcessing, fullscreenBlitMaterial);
-        
+        Shader.SetGlobalTexture("_FluidMatcap", fluidMatcap);
     }
     
 #if UNITY_EDITOR

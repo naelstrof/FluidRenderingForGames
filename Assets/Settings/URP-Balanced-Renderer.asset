@@ -15,6 +15,7 @@ MonoBehaviour:
   m_Active: 1
   fullscreenBlitMaterial: {fileID: 2100000, guid: e6cb23922d304c94e89fd2de80c7293a,
     type: 2}
+  fluidMatcap: {fileID: 2800000, guid: b4f9122160d0c5343a8feb50a0dc201e, type: 3}
 --- !u!114 &-1878332245247344467
 MonoBehaviour:
   m_ObjectHideFlags: 0

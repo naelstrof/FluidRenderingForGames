@@ -2062,9 +2062,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 4294967295
   _size: 0.099
-  _color: {r: 1, g: 1, b: 1, a: 0.078431375}
-  _strength: 0
-  tempRenderer: {fileID: 1518261536}
+  _velocityMultiplier: 1
 --- !u!4 &1664735594
 Transform:
   m_ObjectHideFlags: 0

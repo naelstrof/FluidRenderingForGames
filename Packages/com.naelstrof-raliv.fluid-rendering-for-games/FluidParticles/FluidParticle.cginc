@@ -5,6 +5,7 @@ struct Particle {
     float3 position;
     float size;
     float4 color;
+    float heightStrength;
 };
 
 StructuredBuffer<Particle> _Particle;
@@ -14,7 +15,7 @@ StructuredBuffer<float2> _ParticleUVs;
 StructuredBuffer<float> _ParticleOpacities;
 uniform uint _ParticleCount;
 
-void GetParticle(uint vertexID, uint instanceID, out float3 localPosition, out float3 localNormal, out float2 uv, out float4 color) {
+void GetParticle(uint vertexID, uint instanceID, out float3 localPosition, out float3 localNormal, out float2 uv, out float4 color, out float heightStrength) {
     int vertIndex = _ParticleTriangles[vertexID];
     float3 particleOffset = _Particle[instanceID].position-_Particle[(instanceID+1)%_ParticleCount].position;
     float particleDistance = length(particleOffset);
@@ -36,7 +37,8 @@ void GetParticle(uint vertexID, uint instanceID, out float3 localPosition, out f
     localPosition*=_Particle[instanceID].size * (1+bunchFactor);
     localPosition+=_Particle[instanceID].position;
     localNormal = _ParticleNormals[vertIndex];
-    color = _Particle[instanceID].color * float4(1,1,1,0.1*(1+bunchFactor));
+    color = _Particle[instanceID].color;
+    heightStrength = _Particle[instanceID].heightStrength*(1+bunchFactor);
     uv = _ParticleUVs[vertIndex];
 }
 

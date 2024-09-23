@@ -12,7 +12,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 51709a72c4826104e91f7ee5397b73f2, type: 3}
   m_Name: FluidParticleSystemSettings
   m_EditorClassIdentifier: 
-  <noiseStrength>k__BackingField: 0.36
+  <baseVelocity>k__BackingField: 3
+  <particleBaseSize>k__BackingField: 0.1
+  <color>k__BackingField: {r: 0.1735938, g: 0.7830189, b: 0.5431801, a: 1}
+  <heightStrengthBase>k__BackingField: 0.02
+  <noiseStrength>k__BackingField: 0.2
   <noiseFrequency>k__BackingField: 4
   <noiseOctaves>k__BackingField: 2
   <splatSize>k__BackingField: 0.001
+  <particleMaterial>k__BackingField: {fileID: 2100000, guid: 1ffacd69c2e9ceb4d9a1f7aafcb3a486,
+    type: 2}
+  <decalableHitMask>k__BackingField:
+    serializedVersion: 2
+    m_Bits: 4294967295
