@@ -5,17 +5,18 @@ using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
 public abstract class FluidParticleSystem {
-    public delegate void ParticleCollisionEventDelegate(RaycastHit hit, float particleVolume, Color color);
+    public delegate void ParticleCollisionEventDelegate(RaycastHit hit, Particle particle);
 
     protected int particleCountMax;
 
     //[SerializeField] private LightProbeProxyVolume lightProbeVolume;
 
     [Serializable]
-    protected struct Particle {
+    public struct Particle {
         public Vector3 position;
         public float size;
         public Color color;
+        public float heightStrength;
     }
 
     protected struct ParticlePhysics {
@@ -45,8 +46,8 @@ public abstract class FluidParticleSystem {
 
     public event ParticleCollisionEventDelegate particleCollisionEvent;
 
-    protected void TriggerParticleCollisionEvent(RaycastHit hit, float particleSize, Color color) {
-        particleCollisionEvent?.Invoke(hit, particleSize, color);
+    protected void TriggerParticleCollisionEvent(RaycastHit hit, Particle particle) {
+        particleCollisionEvent?.Invoke(hit, particle);
     }
 
     public FluidParticleSystem(Material material, FluidParticleSystemSettings fluidParticleSystemSettings, LayerMask collisionLayerMask, int particleCountMax = 3000) {
@@ -90,25 +91,27 @@ public abstract class FluidParticleSystem {
         Vector3 previousPosition,
         Vector3 forward,
         Vector3 previousForward,
-        float strength,
-        float previousStrength,
+        float velocity,
+        float previousVelocity,
         float size,
         Color color, 
+        float heightStrength, 
         float subT = 0f,
         bool colliding = false
         ) {
         var subTime = Time.timeSinceLevelLoad - Time.deltaTime * subT;
         var velocityNoise = Vector3.one*(1f-_fluidParticleSystemSettings.noiseStrength*0.5f)+GenerateVelocityNoise(subTime)*_fluidParticleSystemSettings.noiseStrength;
-        var velocity = Vector3.Lerp(forward, previousForward, subT);
-        velocity.Scale(velocityNoise);
-        velocity *= Mathf.Lerp(strength, previousStrength, subT);
+        var particleVelocity = Vector3.Lerp(forward, previousForward, subT);
+        particleVelocity.Scale(velocityNoise);
+        particleVelocity *= Mathf.Lerp(velocity, previousVelocity, subT);
         _particles[_particleSpawnIndex] = new Particle {
-            position = Vector3.Lerp(position, previousPosition, subT) - velocity * Time.deltaTime,
+            position = Vector3.Lerp(position, previousPosition, subT) - particleVelocity * Time.deltaTime,
             size = size*(1f-velocityNoise.x*0.5f),
-            color = color
+            color = color,
+            heightStrength = heightStrength
         };
         _particlePhysics[_particleSpawnIndex] = new ParticlePhysics {
-            velocity = velocity,
+            velocity = particleVelocity,
         };
         _particles[_particleSpawnIndex].position += _particlePhysics[_particleSpawnIndex].velocity * (Time.deltaTime * subT);
         _particlePhysics[_particleSpawnIndex].velocity += Physics.gravity * (Time.deltaTime * subT);
