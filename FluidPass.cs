@@ -11,7 +11,11 @@ public class FluidPass : ScriptableRenderPass {
     
     private RTHandle m_CameraColorTarget;
     private RTHandle m_CameraDepthTarget;
-    private RTHandle m_FluidBuffer;
+    private RTHandle m_FluidHeightBuffer;
+    private RTHandle m_FluidColorBuffer;
+
+    private const string outputColorName = "_FluidColorBuffer";
+    private int outputColorId = Shader.PropertyToID(outputColorName);
 
     private static List<FluidParticleSystem> systems = new();
     
@@ -43,7 +47,13 @@ public class FluidPass : ScriptableRenderPass {
         desc.depthBufferBits = (int)DepthBits.None;
         desc.colorFormat = RenderTextureFormat.RFloat;
         desc.sRGB = false;
-        RenderingUtils.ReAllocateIfNeeded(ref m_FluidBuffer, desc, name: "_FluidBuffer");
+        RenderingUtils.ReAllocateIfNeeded(ref m_FluidHeightBuffer, desc, name: "_FluidHeightBuffer");
+        
+        desc.msaaSamples = 1;
+        desc.depthBufferBits = (int)DepthBits.None;
+        desc.colorFormat = RenderTextureFormat.Default;
+        desc.sRGB = true;
+        RenderingUtils.ReAllocateIfNeeded(ref m_FluidColorBuffer, desc, name: outputColorName);
     }
 
     public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData) {
@@ -57,12 +67,19 @@ public class FluidPass : ScriptableRenderPass {
         
         CommandBuffer cmd = CommandBufferPool.Get();
         using (new ProfilingScope(cmd, m_ProfilingSampler)) {
-            CoreUtils.SetRenderTarget(cmd, m_FluidBuffer, m_CameraDepthTarget);
+            CoreUtils.SetRenderTarget(cmd, m_FluidHeightBuffer, m_CameraDepthTarget);
             CoreUtils.ClearRenderTarget(cmd, ClearFlag.Color, Color.black);
             foreach (var system in systems) {
-                system.Render(cmd);
+                system.RenderHeight(cmd);
             }
-            Blitter.BlitCameraTexture(cmd, m_FluidBuffer, m_CameraColorTarget, material, 0);
+            CoreUtils.SetRenderTarget(cmd, m_FluidColorBuffer, m_CameraDepthTarget);
+            CoreUtils.ClearRenderTarget(cmd, ClearFlag.Color, Color.clear);
+            foreach (var system in systems) {
+                system.RenderColor(cmd);
+            }
+
+            cmd.SetGlobalTexture(outputColorId, m_FluidColorBuffer);
+            Blitter.BlitCameraTexture(cmd, m_FluidHeightBuffer, m_CameraColorTarget, material, 0);
         }
         context.ExecuteCommandBuffer(cmd);
         cmd.Clear();
