@@ -8,7 +8,6 @@ public class FluidStrandSpawner : MonoBehaviour {
     [SerializeField] private FluidParticleSystemSettings fluidParticleSystemSettings;
     [SerializeField] private LayerMask decalableHitMask = ~0;
     [SerializeField] private List<StrandAnchor> strandAnchors;
-    [SerializeField] private Renderer tempRenderer;
 
     [Serializable]
     private struct StrandAnchor {
@@ -35,6 +34,7 @@ public class FluidStrandSpawner : MonoBehaviour {
 
     private void FixedUpdate() {
         for(int i=0;i<strandAnchors.Count;i++) {
+            strandAnchors[i].strand?.SetLocalPointA(strandAnchors[i].position);
             if ((strandAnchors[i].strand?.GetBroken() ?? false) && Time.time - strandAnchors[i].strand.GetTimeBroken() > FluidParticleSystemVerletStrand.fadeoutTime) {
                 FluidPass.RemoveParticleSystem(strandAnchors[i].strand);
                 strandAnchors[i].strand.Cleanup();
