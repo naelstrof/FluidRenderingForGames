@@ -14,36 +14,13 @@ public class FluidRenderingRendererFeature : ScriptableRendererFeature {
         if (fullscreenBlitMaterial == null) {
             return;
         }
-        EnsureLayersAreCorrect();
 #endif
         
-        _fluidPass = new FluidPass(RenderPassEvent.BeforeRenderingPostProcessing, fullscreenBlitMaterial, LayerMask.GetMask("FluidVFX"));
+        _fluidPass = new FluidPass(RenderPassEvent.BeforeRenderingPostProcessing, fullscreenBlitMaterial);
         
     }
     
 #if UNITY_EDITOR
-    public static void EnsureLayersAreCorrect() {
-        SerializedObject tagManager = new SerializedObject(AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/TagManager.asset")[0]);
-        SerializedProperty layers = tagManager.FindProperty("layers");
-        for (int i = 0; i < layers.arraySize; i++) {
-            var layerProp = layers.GetArrayElementAtIndex(i);
-            if (layerProp.stringValue == "FluidVFX") {
-                return;
-            }
-        }
-
-        for (int i = 0; i < layers.arraySize; i++) {
-            var layerProp = layers.GetArrayElementAtIndex(i);
-            if (string.IsNullOrEmpty(layerProp.stringValue)) {
-                Debug.Log($"FluidRenderingForGames: Created FluidVFX layer in slot {i}, feel free to move it under the layer settings.");
-                layerProp.stringValue = "FluidVFX";
-                tagManager.ApplyModifiedPropertiesWithoutUndo();
-                return;
-            }
-        }
-        throw new UnityException( "Failed to find FluidVFX layer, and failed to create one automatically. Please create one or remove an unused layer!");
-    }
-
     private void EnsureWeHaveFullscreenBlitMaterial() {
         SerializedObject obj = new SerializedObject(this);
         var blitMat = obj.FindProperty(nameof(fullscreenBlitMaterial));

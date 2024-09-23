@@ -8,7 +8,6 @@ struct Particle {
 
 StructuredBuffer<Particle> _Particle;
 StructuredBuffer<int> _ParticleTriangles;
-StructuredBuffer<float3> _ParticlePositions;
 StructuredBuffer<float3> _ParticleNormals;
 StructuredBuffer<float2> _ParticleUVs;
 StructuredBuffer<float> _ParticleOpacities;
@@ -19,7 +18,20 @@ void GetParticle(uint vertexID, uint instanceID, float particleSize, out float3 
     float3 particleOffset = _Particle[instanceID].position-_Particle[(instanceID+1)%_ParticleCount].position;
     float particleDistance = length(particleOffset);
     float bunchFactor = saturate(1-particleDistance*10);
-    localPosition = mul(unity_CameraToWorld, float4(_ParticleUVs[vertIndex] + float2(-0.5, -0.5), 0, 0)).xyz;
+    //localPosition = float3(_ParticleUVs[vertIndex] + float2(-0.5, -0.5), 0);
+    //float3 cameraPos = GetCameraPositionWS();
+    float3 cameraPos = mul(unity_CameraToWorld, float4(0, 0, 0, 1)).xyz;
+    
+    float3 orthoForward = normalize(cameraPos-_Particle[instanceID].position);
+    float3 orthoRight = normalize(mul(unity_CameraToWorld, float4(1, 0, 0, 0)).xyz);
+    float3 orthoUp = cross(orthoRight, orthoForward);
+    orthoRight = cross(orthoForward, orthoUp);
+    
+    float3x3 rot = transpose(float3x3(orthoRight, orthoUp, orthoForward));
+    
+    localPosition = mul(rot, float3(_ParticleUVs[vertIndex] + float2(-0.5, -0.5), 0)).xyz;
+    
+    //localPosition = mul(unity_CameraToWorld, float4(_ParticleUVs[vertIndex] + float2(-0.5, -0.5), 0, 0)).xyz;
     localPosition*=particleSize+particleSize*_Particle[instanceID].volume * (1+bunchFactor);
     localPosition+=_Particle[instanceID].position;
     localNormal = _ParticleNormals[vertIndex];
