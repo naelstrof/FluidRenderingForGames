@@ -12,31 +12,139 @@ Shader "FluidParticles"
 	{
 		
 		
-		Tags { "RenderType"="Transparent" "Queue"="Transparent" }
+		Tags { "RenderType"="Opaque" }
 	LOD 100
 
 		CGINCLUDE
 		#pragma target 3.0
 		ENDCG
-		Blend One One
+		Blend Off
 		AlphaToMask Off
-		Cull Off
+		Cull Back
 		ColorMask RGBA
-		ZWrite Off
+		ZWrite On
 		ZTest LEqual
-		
+		Offset 0 , 0
 		
 		
 		Pass
 		{
-			Name "Unlit"
+			
+			Name "FluidColor"
 
 			CGPROGRAM
 
-			#define ASE_ABSOLUTE_VERTEX_POS 1
 			#define VERTEXID_SEMANTIC SV_VertexID
 			#define INSTANCEID_SEMANTIC SV_InstanceID
 
+
+			#ifndef UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX
+			//only defining to not throw compilation error over Unity 5.5
+			#define UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input)
+			#endif
+			#pragma vertex vert
+			#pragma fragment frag
+			#pragma multi_compile_instancing
+			#include "UnityCG.cginc"
+			#include "Packages/com.naelstrof-raliv.fluid-rendering-for-games/FluidParticles/FluidParticle.cginc"
+			#pragma instancing_options procedural:ASEProceduralSetup
+
+
+			struct appdata
+			{
+				float4 vertex : POSITION;
+				float4 color : COLOR;
+				uint ase_vertexId : VERTEXID_SEMANTIC;
+				uint ase_instanceId : INSTANCEID_SEMANTIC;
+				UNITY_VERTEX_INPUT_INSTANCE_ID
+			};
+			
+			struct v2f
+			{
+				float4 vertex : SV_POSITION;
+				#ifdef ASE_NEEDS_FRAG_WORLD_POSITION
+				float3 worldPos : TEXCOORD0;
+				#endif
+				float4 ase_texcoord1 : TEXCOORD1;
+				UNITY_VERTEX_INPUT_INSTANCE_ID
+				UNITY_VERTEX_OUTPUT_STEREO
+			};
+
+			void ASEProceduralSetup() { }
+
+			
+			v2f vert ( appdata v )
+			{
+				v2f o;
+				UNITY_SETUP_INSTANCE_ID(v);
+				UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
+				UNITY_TRANSFER_INSTANCE_ID(v, o);
+
+				float localGetParticle22 = ( 0.0 );
+				uint vertexID22 =(uint)v.ase_vertexId;
+				uint instanceID22 =(uint)v.ase_instanceId;
+				float3 localPosition22 = float3( 0,0,0 );
+				float3 localNormal22 = float3( 0,0,0 );
+				float2 uv22 = float2( 0,0 );
+				float4 color22 = float4( 0,0,0,0 );
+				GetParticle( vertexID22 , instanceID22 , localPosition22 , localNormal22 , uv22 , color22 );
+				
+				float4 vertexToFrag265 = color22;
+				o.ase_texcoord1 = vertexToFrag265;
+				
+				float3 vertexValue = float3(0, 0, 0);
+				#if ASE_ABSOLUTE_VERTEX_POS
+				vertexValue = v.vertex.xyz;
+				#endif
+				vertexValue = localPosition22;
+				#if ASE_ABSOLUTE_VERTEX_POS
+				v.vertex.xyz = vertexValue;
+				#else
+				v.vertex.xyz += vertexValue;
+				#endif
+				o.vertex = UnityObjectToClipPos(v.vertex);
+
+				#ifdef ASE_NEEDS_FRAG_WORLD_POSITION
+				o.worldPos = mul(unity_ObjectToWorld, v.vertex).xyz;
+				#endif
+				return o;
+			}
+			
+			fixed4 frag (v2f i ) : SV_Target
+			{
+				UNITY_SETUP_INSTANCE_ID(i);
+				UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
+				fixed4 finalColor;
+				#ifdef ASE_NEEDS_FRAG_WORLD_POSITION
+				float3 WorldPosition = i.worldPos;
+				#endif
+				float4 vertexToFrag265 = i.ase_texcoord1;
+				
+				
+				finalColor = vertexToFrag265;
+				return finalColor;
+			}
+			ENDCG
+		}
+		
+		Pass
+		{
+			Name "FluidHeight"
+			
+			Blend One One
+			AlphaToMask Off
+			Cull Off
+			ColorMask RGBA
+			ZWrite Off
+			ZTest LEqual
+
+			CGPROGRAM
+			
+
+			#define VERTEXID_SEMANTIC SV_VertexID
+			#define INSTANCEID_SEMANTIC SV_InstanceID
+
+			
 
 			#ifndef UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX
 			//only defining to not throw compilation error over Unity 5.5
@@ -149,8 +257,9 @@ Node;AmplifyShaderEditor.VertexToFragmentNode;265;752,592;Inherit;False;False;Fa
 Node;AmplifyShaderEditor.SamplerNode;11;976,368;Inherit;True;Property;_MainTex;_MainTex;0;0;Create;True;0;0;0;False;0;False;-1;None;ae408e3a460eedc4eb89657b63168525;True;0;False;white;Auto;False;Object;-1;Auto;Texture2D;8;0;SAMPLER2D;;False;1;FLOAT2;0,0;False;2;FLOAT;0;False;3;FLOAT2;0,0;False;4;FLOAT2;0,0;False;5;FLOAT;1;False;6;FLOAT;0;False;7;SAMPLERSTATE;;False;6;COLOR;0;FLOAT;1;FLOAT;2;FLOAT;3;FLOAT;4;FLOAT3;5
 Node;AmplifyShaderEditor.BreakToComponentsNode;267;1088,656;Inherit;False;FLOAT4;1;0;FLOAT4;0,0,0,0;False;16;FLOAT;0;FLOAT;1;FLOAT;2;FLOAT;3;FLOAT;4;FLOAT;5;FLOAT;6;FLOAT;7;FLOAT;8;FLOAT;9;FLOAT;10;FLOAT;11;FLOAT;12;FLOAT;13;FLOAT;14;FLOAT;15
 Node;AmplifyShaderEditor.SimpleMultiplyOpNode;268;1360,656;Inherit;False;2;2;0;FLOAT;0;False;1;FLOAT;0;False;1;FLOAT;0
-Node;AmplifyShaderEditor.SimpleMultiplyOpNode;241;1552,432;Inherit;False;2;2;0;FLOAT4;0,0,0,0;False;1;FLOAT;0;False;1;FLOAT4;0
-Node;AmplifyShaderEditor.TemplateMultiPassMasterNode;244;1824,528;Float;False;True;-1;2;ASEMaterialInspector;100;5;FluidParticles;0770190933193b94aaa3065e307002fa;True;Unlit;0;0;Unlit;2;True;True;4;1;False;;1;False;;0;1;False;;0;False;;True;0;False;;0;False;;False;False;False;False;False;False;False;False;False;True;0;False;;True;True;2;False;;True;True;True;True;True;True;0;False;;False;False;False;False;False;False;False;True;False;0;False;;255;False;;255;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;True;True;2;False;;True;3;False;;True;False;0;False;;0;False;;True;2;RenderType=Transparent=RenderType;Queue=Transparent=Queue=0;True;2;False;0;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;0;;0;0;Standard;1;Vertex Position,InvertActionOnDeselection;0;638626460561459182;0;1;True;False;;False;0
+Node;AmplifyShaderEditor.SimpleMultiplyOpNode;241;1520,336;Inherit;False;2;2;0;FLOAT4;0,0,0,0;False;1;FLOAT;0;False;1;FLOAT4;0
+Node;AmplifyShaderEditor.TemplateMultiPassMasterNode;269;1824,528;Float;False;True;-1;2;ASEMaterialInspector;100;18;FluidParticles;b199d6c4625f78a44954409d87f32159;True;FluidColor;0;0;FluidColor;2;False;True;0;1;False;;0;False;;0;1;False;;0;False;;True;0;False;;0;False;;False;False;False;False;False;False;False;False;False;True;0;False;;False;True;0;False;;False;True;True;True;True;True;0;False;;False;False;False;False;False;False;False;True;False;0;False;;255;False;;255;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;False;True;1;False;;True;3;False;;True;True;0;False;;0;False;;True;1;RenderType=Opaque=RenderType;True;2;False;0;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;0;;0;0;Standard;1;Vertex Position,InvertActionOnDeselection;1;0;0;2;True;True;False;;False;0
+Node;AmplifyShaderEditor.TemplateMultiPassMasterNode;270;1824,654;Float;False;False;-1;2;ASEMaterialInspector;100;18;New Amplify Shader;b199d6c4625f78a44954409d87f32159;True;FluidHeight;0;1;FluidHeight;2;False;True;0;1;False;;0;False;;0;1;False;;0;False;;True;0;False;;0;False;;False;False;False;False;False;False;False;False;False;True;0;False;;False;True;0;False;;False;True;True;True;True;True;0;False;;False;False;False;False;False;False;False;True;False;0;False;;255;False;;255;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;False;True;1;False;;True;3;False;;True;True;0;False;;0;False;;True;1;RenderType=Opaque=RenderType;True;2;False;0;False;True;4;1;False;;1;False;;0;1;False;;0;False;;False;False;False;False;False;False;False;False;False;False;True;0;False;;False;True;2;False;;False;True;True;True;True;True;0;False;;False;False;False;False;False;False;False;False;False;True;2;False;;True;3;False;;False;False;False;False;0;;0;0;Standard;0;False;0
 WireConnection;22;1;83;0
 WireConnection;22;2;24;0
 WireConnection;239;0;22;6
@@ -161,7 +270,9 @@ WireConnection;268;0;11;1
 WireConnection;268;1;267;3
 WireConnection;241;0;265;0
 WireConnection;241;1;268;0
-WireConnection;244;0;241;0
-WireConnection;244;1;22;4
+WireConnection;269;0;265;0
+WireConnection;269;1;22;4
+WireConnection;270;0;241;0
+WireConnection;270;1;22;4
 ASEEND*/
-//CHKSM=2275E0177195BF4FDBC565669AE19EFE3FC074BD
+//CHKSM=54354AEC5D589EB912B940F347167604B37AC671

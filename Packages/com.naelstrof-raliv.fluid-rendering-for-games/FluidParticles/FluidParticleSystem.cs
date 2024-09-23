@@ -142,12 +142,16 @@ public abstract class FluidParticleSystem {
         _materialPropertyBlock.SetBuffer(Particle1, _particleBuffer);
     }
 
-    public void Render(CommandBuffer buffer) {
-        buffer.DrawProcedural(Matrix4x4.identity, _material, -1, MeshTopology.Triangles, 6, _particles.Length, _materialPropertyBlock);
+    public void RenderHeight(CommandBuffer buffer) {
+        buffer.DrawProcedural(Matrix4x4.identity, _material, 1, MeshTopology.Triangles, 6, _particles.Length, _materialPropertyBlock);
+    }
+    
+    public void RenderColor(CommandBuffer buffer) {
+        buffer.DrawProcedural(Matrix4x4.identity, _material, 0, MeshTopology.Triangles, 6, _particles.Length, _materialPropertyBlock);
     }
 
     private void GenerateMeshData() {
-        var normals = new[] {Vector3.forward, Vector3.forward, Vector3.forward,Vector3.forward};
+        var normals = new[] {Vector3.forward, Vector3.forward, Vector3.forward, Vector3.forward};
         var triangles = new[] {0, 1, 2, 0, 2, 3};
         var uvs = new[] {Vector2.up, Vector2.one, Vector2.right, Vector2.zero};
         _meshNormals = new GraphicsBuffer(GraphicsBuffer.Target.Structured, normals.Length, Marshal.SizeOf<Vector3>());
