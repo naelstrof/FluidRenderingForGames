@@ -13,10 +13,10 @@ public class FluidParticleSystemEuler : FluidParticleSystem {
             var positionStep = _particlePhysics[index].velocity * Time.deltaTime;
             if (_particlePhysics[index].Colliding) {
                 if (Physics.Raycast(_particles[index].position, positionStep, out var hit, positionStep.magnitude, _collisionLayerMask)) {
-                    TriggerParticleCollisionEvent(hit, _particles[index].volume);
+                    TriggerParticleCollisionEvent(hit, _particles[index].size, _particles[index].color);
                     var walk = index;
                     do {
-                        _particles[walk].volume = 0f;
+                        _particles[walk].size = 0f;
                         walk = (walk + 1) % _particlePhysics.Length;
                     } while (!_particlePhysics[walk].Colliding);
                 }
