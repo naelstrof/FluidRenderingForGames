@@ -5,18 +5,27 @@ using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
 public abstract class FluidParticleSystem {
-    public delegate void ParticleCollisionEventDelegate(RaycastHit hit, Particle particle);
+    public delegate void ParticleCollisionEventDelegate(ParticleCollision particleCollision);
 
     protected int particleCountMax;
 
     //[SerializeField] private LightProbeProxyVolume lightProbeVolume;
 
-    [Serializable]
     public struct Particle {
         public Vector3 position;
         public float size;
         public Color color;
         public float heightStrength;
+    }
+    
+    public struct ParticleCollision {
+        public Collider collider;
+        public Vector3 position;
+        public Vector3 normal;
+        public float size;
+        public Color color;
+        public float heightStrength;
+        public Vector3 stretch;
     }
 
     protected struct ParticlePhysics {
@@ -46,8 +55,8 @@ public abstract class FluidParticleSystem {
 
     public event ParticleCollisionEventDelegate particleCollisionEvent;
 
-    protected void TriggerParticleCollisionEvent(RaycastHit hit, Particle particle) {
-        particleCollisionEvent?.Invoke(hit, particle);
+    protected void TriggerParticleCollisionEvent(ParticleCollision particleCollision) {
+        particleCollisionEvent?.Invoke(particleCollision);
     }
 
     public FluidParticleSystem(Material material, FluidParticleSystemSettings fluidParticleSystemSettings, LayerMask collisionLayerMask, int particleCountMax = 3000) {

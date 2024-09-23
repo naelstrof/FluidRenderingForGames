@@ -33,21 +33,39 @@ public class FluidEmitter : MonoBehaviour {
         FluidPass.AddParticleSystem(_fluidParticleSystem);
     }
 
-    private void OnFluidCollision(RaycastHit hit, FluidParticleSystem.Particle particle) {
-        if (!hit.collider.TryGetComponent(out DecalableCollider decalableCollider)) {
+    private void OnFluidCollision(FluidParticleSystem.ParticleCollision particleCollision) {
+        if (!particleCollision.collider.TryGetComponent(out DecalableCollider decalableCollider)) {
             return;
         }
 
         foreach (var rend in decalableCollider.decalableRenderers) {
             if (!rend) continue;
+            var stretch = particleCollision.stretch;
+            var bounds = new Vector3(particleCollision.size, stretch.magnitude, particleCollision.size * 6f); // the magic number is depth for misaligned colliders
+            var rotation = Quaternion.LookRotation(-particleCollision.normal, stretch);
+            //Debug.DrawLine(
+            //    particleCollision.position-rotation*Vector3.up*stretch.magnitude,
+            //    particleCollision.position+rotation*Vector3.up*stretch.magnitude,
+            //    Color.red,
+            //    0.5f
+            //    );
             PaintDecal.RenderDecal(rend, 
-                new DecalProjector(DecalProjectorType.SphereAlpha, particle.color),
-                new DecalProjection(hit.point, Quaternion.LookRotation(-hit.normal, Vector3.up), new Vector3(particle.size, particle.size, particle.size*6f)*1.5f)
+                new DecalProjector(DecalProjectorType.SphereAlpha, particleCollision.color),
+                new DecalProjection(
+                    particleCollision.position,
+                    rotation, 
+                    bounds*1.5f
+                    )
             );
             PaintDecal.RenderDecal(rend, 
-                new DecalProjector(DecalProjectorType.SphereAlpha, new Color(1f, 0f, 0f, particle.heightStrength)),
-                new DecalProjection(hit.point, Quaternion.LookRotation(-hit.normal, Vector3.up), new Vector3(particle.size, particle.size, particle.size*6f)),
-                new DecalSettings(DecalResolutionType.Auto, textureName:"_FluidHeight", renderTextureFormat:RenderTextureFormat.RFloat, renderTextureReadWrite:RenderTextureReadWrite.Linear)
+                new DecalProjector(DecalProjectorType.SphereAlpha, new Color(1f, 0f, 0f, particleCollision.heightStrength)),
+                new DecalProjection(particleCollision.position, rotation, bounds),
+                new DecalSettings(
+                    DecalResolutionType.Auto,
+                    textureName:"_FluidHeight",
+                    renderTextureFormat:RenderTextureFormat.RFloat,
+                    renderTextureReadWrite:RenderTextureReadWrite.Linear
+                    )
             );
         }
     }
@@ -92,6 +110,9 @@ public class FluidEmitter : MonoBehaviour {
 
     public void SetVelocityMultiplier(float velocityMultiplier) {
         _velocityMultiplier = velocityMultiplier;
+    }
+    public void setHeightStrengthMultiplier(float heightStrengthMultiplier) {
+        _heightStrengthMultiplier = heightStrengthMultiplier;
     }
     
 }
