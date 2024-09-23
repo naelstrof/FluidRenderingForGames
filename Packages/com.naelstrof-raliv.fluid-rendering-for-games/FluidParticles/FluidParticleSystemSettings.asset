@@ -15,3 +15,4 @@ MonoBehaviour:
   <noiseStrength>k__BackingField: 0.36
   <noiseFrequency>k__BackingField: 4
   <noiseOctaves>k__BackingField: 2
+  <splatSize>k__BackingField: 0.001
