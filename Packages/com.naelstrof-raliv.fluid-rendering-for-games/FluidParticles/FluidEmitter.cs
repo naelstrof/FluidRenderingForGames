@@ -58,13 +58,13 @@ public class FluidEmitter : MonoBehaviour {
                     )
             );
             PaintDecal.RenderDecal(rend, 
-                new DecalProjector(DecalProjectorType.SphereAlpha, new Color(1f, 0f, 0f, particleCollision.heightStrength)),
+                new DecalProjector(DecalProjectorType.SphereAdditive, new Color(particleCollision.heightStrength, 0f, 0f, 1f)),
                 new DecalProjection(particleCollision.position, rotation, bounds),
                 new DecalSettings(
-                    DecalResolutionType.Auto,
                     textureName:"_FluidHeight",
                     renderTextureFormat:RenderTextureFormat.RFloat,
-                    renderTextureReadWrite:RenderTextureReadWrite.Linear
+                    renderTextureReadWrite:RenderTextureReadWrite.Linear,
+                    dilation:DilationType.Additive
                     )
             );
         }
