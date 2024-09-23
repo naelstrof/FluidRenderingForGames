@@ -5,7 +5,7 @@ using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
 public abstract class FluidParticleSystem {
-    public delegate void ParticleCollisionEventDelegate(RaycastHit hit, float particleVolume);
+    public delegate void ParticleCollisionEventDelegate(RaycastHit hit, float particleVolume, Color color);
 
     protected int particleCountMax;
 
@@ -14,7 +14,8 @@ public abstract class FluidParticleSystem {
     [Serializable]
     protected struct Particle {
         public Vector3 position;
-        public float volume;
+        public float size;
+        public Color color;
     }
 
     protected struct ParticlePhysics {
@@ -44,8 +45,8 @@ public abstract class FluidParticleSystem {
 
     public event ParticleCollisionEventDelegate particleCollisionEvent;
 
-    protected void TriggerParticleCollisionEvent(RaycastHit hit, float particleVolume) {
-        particleCollisionEvent?.Invoke(hit,particleVolume);
+    protected void TriggerParticleCollisionEvent(RaycastHit hit, float particleSize, Color color) {
+        particleCollisionEvent?.Invoke(hit, particleSize, color);
     }
 
     public FluidParticleSystem(Material material, FluidParticleSystemSettings fluidParticleSystemSettings, LayerMask collisionLayerMask, int particleCountMax = 3000) {
@@ -91,7 +92,8 @@ public abstract class FluidParticleSystem {
         Vector3 previousForward,
         float strength,
         float previousStrength,
-        float volume,
+        float size,
+        Color color, 
         float subT = 0f,
         bool colliding = false
         ) {
@@ -102,7 +104,8 @@ public abstract class FluidParticleSystem {
         velocity *= Mathf.Lerp(strength, previousStrength, subT);
         _particles[_particleSpawnIndex] = new Particle {
             position = Vector3.Lerp(position, previousPosition, subT) - velocity * Time.deltaTime,
-            volume = volume*(1f-velocityNoise.x*0.5f)
+            size = size*(1f-velocityNoise.x*0.5f),
+            color = color
         };
         _particlePhysics[_particleSpawnIndex] = new ParticlePhysics {
             velocity = velocity,

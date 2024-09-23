@@ -16,7 +16,8 @@ public class FluidEmitter : MonoBehaviour {
     [SerializeField] private Material particleMaterial;
     [SerializeField] private FluidParticleSystemSettings fluidParticleSystemSettings;
     [SerializeField] private LayerMask decalableHitMask = ~0;
-    [SerializeField, Range(0f,1f)] private float _volume;
+    [SerializeField, Range(0f,1f)] private float _size;
+    [SerializeField] private Color _color;
     [SerializeField, Range(0f,5f)] private float _strength;
     [SerializeField] private Renderer tempRenderer;
     
@@ -34,7 +35,7 @@ public class FluidEmitter : MonoBehaviour {
         FluidPass.AddParticleSystem(_fluidParticleSystem);
     }
 
-    private void OnFluidCollision(RaycastHit hit, float particlevolume) {
+    private void OnFluidCollision(RaycastHit hit, float particlevolume, Color color) {
         if (!hit.collider.TryGetComponent(out DecalableCollider decalableCollider)) {
             return;
         }
@@ -43,7 +44,7 @@ public class FluidEmitter : MonoBehaviour {
             if (!rend) continue;
             var particleSize = particlevolume * fluidParticleSystemSettings.splatSize;
             PaintDecal.RenderDecal(rend, 
-                new DecalProjector(DecalProjectorType.SphereAlpha, new Color(1,1,1,particlevolume * 0.05f)),
+                new DecalProjector(DecalProjectorType.SphereAlpha, new Color(color.r,color.g,color.b,particlevolume * 0.05f)),
                 new DecalProjection(hit.point, Quaternion.LookRotation(-hit.normal, Vector3.up), new Vector3(particleSize, particleSize, particleSize*6f))
                 );
         }
@@ -72,7 +73,8 @@ public class FluidEmitter : MonoBehaviour {
                 _previousForward, 
                 _strength, 
                 _previousStrength,
-                _volume,
+                _size,
+                _color,
                 (float)i/subParticles,
                 i==0
                 );
@@ -85,10 +87,6 @@ public class FluidEmitter : MonoBehaviour {
 
     public void SetStrength(float strength) {
         _strength = strength;
-    }
-    
-    public void SetVolume(float volume) {
-        _volume = volume;
     }
     
 }

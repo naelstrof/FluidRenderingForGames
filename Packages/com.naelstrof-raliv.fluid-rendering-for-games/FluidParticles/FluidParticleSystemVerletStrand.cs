@@ -31,9 +31,11 @@ public class FluidParticleSystemVerletStrand : FluidParticleSystem {
             _particles[i].position = Vector3.Lerp(positionA, positionB, progress);
             _particlePhysics[i].lastPosition = _particles[i].position;
             if (progress < 0.5f) {
-                _particles[i].volume = (1f-Easing.OutCubic(progress * 2f))*cubicThickness + baseThickness;
+                _particles[i].size = (1f-Easing.OutCubic(progress * 2f))*cubicThickness + baseThickness;
+                _particles[i].color = new Color(1, 1, 1, 0.25f);
             } else {
-                _particles[i].volume = (Easing.InCubic(progress * 2f-1f))*cubicThickness + baseThickness;
+                _particles[i].size = (Easing.InCubic(progress * 2f-1f))*cubicThickness + baseThickness;
+                _particles[i].color = new Color(1, 1, 1, 0.25f);
             }
         }
     }
@@ -58,9 +60,11 @@ public class FluidParticleSystemVerletStrand : FluidParticleSystem {
                 float fadeProgress = 1f-(Time.time - timeBroken)/fadeoutTime;
                 float progress = (float)i / _particles.Length;
                 if (progress < 0.5f) {
-                    _particles[i].volume = ((1f-Easing.OutCubic(progress * 2f))*cubicThickness + baseThickness) * fadeProgress;
+                    _particles[i].size = ((1f-Easing.OutCubic(progress * 2f))*cubicThickness + baseThickness) * fadeProgress;
+                    _particles[i].color = new Color(1, 1, 1, 0.25f);
                 } else {
-                    _particles[i].volume = (Easing.InCubic(progress * 2f-1f)*cubicThickness + baseThickness) * fadeProgress;
+                    _particles[i].size = (Easing.InCubic(progress * 2f-1f)*cubicThickness + baseThickness) * fadeProgress;
+                    _particles[i].color = new Color(1, 1, 1, 0.25f);
                 }
             }
         }
