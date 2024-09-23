@@ -14,11 +14,11 @@
       "hash": "7ba45cc1603eb95a0d1f4f31fdcbe6b787cf3e7b"
     },
     "com.naelstrof.skinnedmeshdecals": {
-      "version": "https://github.com/naelstrof/SkinnedMeshDecals.git#v8.0.9",
+      "version": "https://github.com/naelstrof/SkinnedMeshDecals.git#v9.0.0",
       "depth": 0,
       "source": "git",
       "dependencies": {},
-      "hash": "d646dd7efb21cda20b89dc33e30194a4d7e4f481"
+      "hash": "ac9ddcf0493cae6a5ee774427f92172249075eed"
     },
     "com.unity.burst": {
       "version": "1.8.15",
