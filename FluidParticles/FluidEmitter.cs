@@ -18,6 +18,7 @@ public class FluidEmitter : MonoBehaviour {
     [SerializeField] private LayerMask decalableHitMask = ~0;
     [SerializeField, Range(0f,1f)] private float _volume;
     [SerializeField, Range(0f,5f)] private float _strength;
+    [SerializeField] private Renderer tempRenderer;
     
     private FluidParticleSystem _fluidParticleSystem;
     private Vector3 _previousPosition;
@@ -28,20 +29,13 @@ public class FluidEmitter : MonoBehaviour {
     private bool printedConfigurationIssue = false;
 
     private void OnEnable() {
-#if UNITY_EDITOR
-        EditorApplication.pauseStateChanged += OnPauseChanged;
-#endif
         _fluidParticleSystem = new FluidParticleSystemEuler(particleMaterial, fluidParticleSystemSettings, decalableHitMask);
         _fluidParticleSystem.particleCollisionEvent += OnFluidCollision;
+        FluidPass.AddParticleSystem(_fluidParticleSystem);
     }
 
     private void OnFluidCollision(RaycastHit hit, float particlevolume) {
         if (!hit.collider.TryGetComponent(out DecalableCollider decalableCollider)) {
-#if UNITY_EDITOR
-            if (printedConfigurationIssue) return;
-            Debug.LogWarning($"No decalable collider found on {hit.collider}. <color=cyan>Please configure using a DecalableCollider Monobehavior, or set up your layers to be more specific!</color>", hit.collider.gameObject);
-            printedConfigurationIssue = true;
-#endif
             return;
         }
 
@@ -55,44 +49,15 @@ public class FluidEmitter : MonoBehaviour {
         }
     }
 
-#if UNITY_EDITOR
-    private void OnPauseChanged(PauseState obj) {
-        if (obj == PauseState.Paused) {
-            rendered = false;
-            SceneView.duringSceneGui += OnSceneGUI;
-        } else {
-            SceneView.duringSceneGui -= OnSceneGUI;
-        }
-    }
-
-    private void OnSceneGUI(SceneView obj) {
-        switch (Event.current.type) {
-            case EventType.Repaint:
-                if (SceneView.currentDrawingSceneView == null || !SceneView.currentDrawingSceneView.hasFocus) {
-                    rendered = false;
-                    return;
-                }
-                if (!rendered) {
-                    _fluidParticleSystem?.Render();
-                    rendered = true;
-                }
-                break;
-        }
-    }
-#endif
-
     private void OnDisable() {
-#if UNITY_EDITOR
-        EditorApplication.pauseStateChanged += OnPauseChanged;
-        SceneView.duringSceneGui -= OnSceneGUI;
-#endif
+        FluidPass.RemoveParticleSystem(_fluidParticleSystem);
         _fluidParticleSystem.particleCollisionEvent -= OnFluidCollision;
         _fluidParticleSystem.Cleanup();
     }
 
-    private void Update() {
-        _fluidParticleSystem?.Render();
-    }
+    //private void Update() {
+        //_fluidParticleSystem?.Render();
+    //}
 
     private void FixedUpdate() {
         if (!Application.isPlaying) {

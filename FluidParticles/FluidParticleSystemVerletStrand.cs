@@ -15,10 +15,10 @@ public class FluidParticleSystemVerletStrand : FluidParticleSystem {
     public bool GetBroken() => broken;
     public float GetTimeBroken() => timeBroken;
 
-    private const float baseThickness = 1.5f;
+    private const float baseThickness = 2f;
     private const float cubicThickness = 1f;
     
-    public FluidParticleSystemVerletStrand(Transform a, Vector3 localPointA, Transform b, Vector3 localPointB, Material material, FluidParticleSystemSettings fluidParticleSystemSettings, LayerMask collisionLayerMask, int particleCountMax = 50) :
+    public FluidParticleSystemVerletStrand(Transform a, Vector3 localPointA, Transform b, Vector3 localPointB, Material material, FluidParticleSystemSettings fluidParticleSystemSettings, LayerMask collisionLayerMask, int particleCountMax = 25) :
         base(material, fluidParticleSystemSettings, collisionLayerMask, particleCountMax) {
         this.a = a;
         this.localPointA = localPointA;
@@ -49,8 +49,9 @@ public class FluidParticleSystemVerletStrand : FluidParticleSystem {
         return broken;
     }
     protected override void UpdateParticles() {
-        const float constraintStrength = 0.5f;
-        const float friction = 0.15f;
+        const float constraintStrength = 0.35f; // Range 0f to 0.5f
+        const float friction = 0.12f; // Range 0f to 1f
+        const float gravityMult = 1f;
         float realFriction = 1f - (friction * friction);
         if (broken) {
             for (var i = 0; i < _particles.Length; i++) {
@@ -91,7 +92,11 @@ public class FluidParticleSystemVerletStrand : FluidParticleSystem {
         for (var i = 1; i < _particles.Length-1; i++) {
             var vel = _particles[i].position - _particlePhysics[i].lastPosition;
             _particlePhysics[i].lastPosition = _particles[i].position;
-            _particles[i].position += vel * realFriction + Physics.gravity * (Time.deltaTime * Time.deltaTime);
+            if (broken) {
+                _particles[i].position += vel * realFriction;
+            } else {
+                _particles[i].position += vel * realFriction + Physics.gravity * (Time.deltaTime * Time.deltaTime * gravityMult);
+            }
         }
     }
 }

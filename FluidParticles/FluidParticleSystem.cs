@@ -28,18 +28,15 @@ public abstract class FluidParticleSystem {
     private Material _material;
     private GraphicsBuffer _particleBuffer;
     private MaterialPropertyBlock _materialPropertyBlock;
-    private RenderParams _renderParams;
     private int _particleSpawnIndex;
     private float _strength;
     private FluidParticleSystemSettings _fluidParticleSystemSettings;
     protected LayerMask _collisionLayerMask;
     
     private GraphicsBuffer _meshTriangles;
-    private GraphicsBuffer _meshVertices;
     private GraphicsBuffer _meshNormals;
     private GraphicsBuffer _meshUVs;
     private static readonly int ParticleTriangles = Shader.PropertyToID("_ParticleTriangles");
-    private static readonly int ParticlePositions = Shader.PropertyToID("_ParticlePositions");
     private static readonly int ParticleNormals = Shader.PropertyToID("_ParticleNormals");
     private static readonly int ParticleUVs = Shader.PropertyToID("_ParticleUVs");
     private static readonly int ParticleCount = Shader.PropertyToID("_ParticleCount");
@@ -65,7 +62,6 @@ public abstract class FluidParticleSystem {
         _particleBuffer?.Release();
         _particleBuffer = null;
         _meshTriangles?.Release();
-        _meshVertices?.Release();
         _meshNormals?.Release();
         _meshUVs?.Release();
     }
@@ -125,14 +121,10 @@ public abstract class FluidParticleSystem {
     protected abstract void UpdateParticles();
 
     void Initialize() {
-        #if UNITY_EDITOR
-        FluidRenderingRendererFeature.EnsureLayersAreCorrect();
-        #endif
         // TODO: staticly initialize or separate out
         GenerateMeshData();
         _materialPropertyBlock ??= new MaterialPropertyBlock();
         _materialPropertyBlock.SetBuffer(ParticleTriangles, _meshTriangles);
-        _materialPropertyBlock.SetBuffer(ParticlePositions, _meshVertices);
         _materialPropertyBlock.SetBuffer(ParticleNormals, _meshNormals);
         _materialPropertyBlock.SetBuffer(ParticleUVs, _meshUVs);
         _materialPropertyBlock.SetInt(ParticleCount, particleCountMax);
@@ -144,38 +136,17 @@ public abstract class FluidParticleSystem {
         //if (lightProbeVolume == null) {
         //    lightProbeVolume = new GameObject("FlockingLightProbeVolume", typeof(LightProbeProxyVolume)).GetComponent<LightProbeProxyVolume>();
         //}
-        _renderParams = new RenderParams(_material) {
-            // TODO: FIX BOUNDS
-            worldBounds = new Bounds(Vector3.zero, Vector3.one*1000f),
-            matProps = _materialPropertyBlock,
-            //lightProbeUsage = LightProbeUsage.UseProxyVolume,
-            //reflectionProbeUsage = ReflectionProbeUsage.BlendProbes,
-            //lightProbeProxyVolume = lightProbeVolume,
-            layer = LayerMask.NameToLayer("FluidVFX")
-        };
         _materialPropertyBlock.SetBuffer(Particle1, _particleBuffer);
     }
 
-    public void Render() {
-        if (_renderParams.matProps == null) {
-            return;
-        }
-
-        Graphics.RenderPrimitives(_renderParams, MeshTopology.Triangles, 6, _particles.Length);
+    public void Render(CommandBuffer buffer) {
+        buffer.DrawProcedural(Matrix4x4.identity, _material, -1, MeshTopology.Triangles, 6, _particles.Length, _materialPropertyBlock);
     }
 
     private void GenerateMeshData() {
-        var vertices = new[] {
-            Vector3.zero,
-            Vector3.zero,
-            Vector3.zero,
-            Vector3.zero
-        };
         var normals = new[] {Vector3.forward, Vector3.forward, Vector3.forward,Vector3.forward};
         var triangles = new[] {0, 1, 2, 0, 2, 3};
-        var uvs = new[] {Vector2.up, Vector2.up + Vector2.right, Vector2.right, Vector2.zero};
-        _meshVertices = new GraphicsBuffer(GraphicsBuffer.Target.Structured, vertices.Length, Marshal.SizeOf<Vector3>());
-        _meshVertices.SetData(vertices);
+        var uvs = new[] {Vector2.up, Vector2.one, Vector2.right, Vector2.zero};
         _meshNormals = new GraphicsBuffer(GraphicsBuffer.Target.Structured, normals.Length, Marshal.SizeOf<Vector3>());
         _meshNormals.SetData(normals);
         _meshTriangles = new GraphicsBuffer(GraphicsBuffer.Target.Structured, triangles.Length, Marshal.SizeOf<int>());

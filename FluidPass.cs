@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.RendererUtils;
@@ -5,30 +6,26 @@ using UnityEngine.Rendering.Universal;
 
 public class FluidPass : ScriptableRenderPass {
     private Material material;
-    private LayerMask fluidVFXLayerMask;
     
     private ProfilingSampler m_ProfilingSampler = new ProfilingSampler("FluidRendering_RenderFeature");
     
     private RTHandle m_CameraColorTarget;
     private RTHandle m_CameraDepthTarget;
     private RTHandle m_FluidBuffer;
-    private ShaderTagId[] shaderTags;
+
+    private static List<FluidParticleSystem> systems = new();
     
-    public FluidPass(
-        RenderPassEvent renderPassEvent, 
-        Material material, 
-        LayerMask fluidVFXLayerMask
-        ) {
+    public FluidPass(RenderPassEvent renderPassEvent, Material material) {
         this.material = material;
         this.renderPassEvent = renderPassEvent;
-        this.fluidVFXLayerMask = fluidVFXLayerMask;
-        shaderTags = new ShaderTagId[] {
-            new("UniversalForward"),
-            new("UniversalForwardOnly"),
-            new("LightweightForward"),
-            new("SRPDefaultUnlit"),
-            new("Forward")
-        };
+    }
+
+    public static void AddParticleSystem(FluidParticleSystem system) {
+        systems.Add(system);
+    }
+    
+    public static void RemoveParticleSystem(FluidParticleSystem system) {
+        systems.Remove(system);
     }
 
     public void SetTarget(RTHandle colorHandle, RTHandle depthHandle) {
@@ -40,10 +37,6 @@ public class FluidPass : ScriptableRenderPass {
         ConfigureTarget(m_CameraColorTarget);
         ReAllocate(renderingData.cameraData.cameraTargetDescriptor);
     }
-
-    //private static void ExecuteCopyColorPass(CommandBuffer cmd, RTHandle sourceTexture) {
-        //Blitter.BlitTexture(cmd, sourceTexture, new Vector4(1, 1, 0, 0), 0.0f, false);
-    //}
     
     void ReAllocate(RenderTextureDescriptor desc) {
         desc.msaaSamples = 1;
@@ -66,18 +59,8 @@ public class FluidPass : ScriptableRenderPass {
         using (new ProfilingScope(cmd, m_ProfilingSampler)) {
             CoreUtils.SetRenderTarget(cmd, m_FluidBuffer, m_CameraDepthTarget);
             CoreUtils.ClearRenderTarget(cmd, ClearFlag.Color, Color.black);
-            { // FLUID VFX PASS
-                if (cameraData.camera.TryGetCullingParameters(out var cullingParameters)) {
-                    cullingParameters.cullingMask = (uint)fluidVFXLayerMask.value;
-                    var cullingResults = context.Cull(ref cullingParameters);
-                    var desc = new RendererListDesc(shaderTags, cullingResults, cameraData.camera) {
-                        renderQueueRange = RenderQueueRange.all,
-                        sortingCriteria = renderingData.cameraData.defaultOpaqueSortFlags,
-                        layerMask = fluidVFXLayerMask.value
-                    };
-                    var rendererList = context.CreateRendererList(desc);
-                    cmd.DrawRendererList(rendererList);
-                }
+            foreach (var system in systems) {
+                system.Render(cmd);
             }
             Blitter.BlitCameraTexture(cmd, m_FluidBuffer, m_CameraColorTarget, material, 0);
         }

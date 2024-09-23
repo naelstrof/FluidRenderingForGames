@@ -8,6 +8,7 @@ public class FluidStrandSpawner : MonoBehaviour {
     [SerializeField] private FluidParticleSystemSettings fluidParticleSystemSettings;
     [SerializeField] private LayerMask decalableHitMask = ~0;
     [SerializeField] private List<StrandAnchor> strandAnchors;
+    [SerializeField] private Renderer tempRenderer;
 
     [Serializable]
     private struct StrandAnchor {
@@ -25,21 +26,17 @@ public class FluidStrandSpawner : MonoBehaviour {
     private void OnDisable() {
         for(int i=0;i<strandAnchors.Count;i++) {
             var strandAnchor = strandAnchors[i];
+            FluidPass.RemoveParticleSystem(strandAnchor.strand);
             strandAnchor.strand?.Cleanup();
             strandAnchor.strand = null;
             strandAnchors[i] = strandAnchor;
-        }
-    }
-    
-    private void Update() {
-        for(int i=0;i<strandAnchors.Count;i++) {
-            strandAnchors[i].strand?.Render();
         }
     }
 
     private void FixedUpdate() {
         for(int i=0;i<strandAnchors.Count;i++) {
             if ((strandAnchors[i].strand?.GetBroken() ?? false) && Time.time - strandAnchors[i].strand.GetTimeBroken() > FluidParticleSystemVerletStrand.fadeoutTime) {
+                FluidPass.RemoveParticleSystem(strandAnchors[i].strand);
                 strandAnchors[i].strand.Cleanup();
                 var strand = strandAnchors[i];
                 strand.strand = null;
@@ -55,6 +52,7 @@ public class FluidStrandSpawner : MonoBehaviour {
             var anchorPoint = selfCollider.transform.TransformPoint(anchor.position);
             if (anchor.strand == null && other.ClosestPoint(anchorPoint) == anchorPoint) {
                 anchor.strand = new FluidParticleSystemVerletStrand(selfCollider.transform, anchor.position, other.transform, other.transform.InverseTransformPoint(anchorPoint), particleMaterial, fluidParticleSystemSettings, decalableHitMask);
+                FluidPass.AddParticleSystem(anchor.strand);
             }
             strandAnchors[i] = anchor;
         }
