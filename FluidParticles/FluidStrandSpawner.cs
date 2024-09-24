@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using SkinnedMeshDecals;
 using UnityEngine;
 
 public class FluidStrandSpawner : MonoBehaviour {
@@ -45,6 +46,36 @@ public class FluidStrandSpawner : MonoBehaviour {
             strandAnchors[i].strand?.FixedUpdate();
         }
     }
+    
+    private void OnFluidCollision(FluidParticleSystem.ParticleCollision particleCollision) {
+        if (!particleCollision.collider.TryGetComponent(out DecalableCollider decalableCollider)) {
+            return;
+        }
+
+        foreach (var rend in decalableCollider.decalableRenderers) {
+            if (!rend) continue;
+            var projection =
+                new DecalProjection(
+                    particleCollision.position,
+                    particleCollision.normal,
+                    particleCollision.size
+                );
+            PaintDecal.RenderDecal(rend, 
+                new DecalProjector(DecalProjectorType.SphereAlpha, particleCollision.color),
+                projection
+            );
+            PaintDecal.RenderDecal(rend, 
+                new DecalProjector(DecalProjectorType.SphereAdditive, new Color(particleCollision.heightStrength, 0f, 0f, 1f)),
+                projection,
+                new DecalSettings(
+                    textureName:"_FluidHeight",
+                    renderTextureFormat:RenderTextureFormat.RFloat,
+                    renderTextureReadWrite:RenderTextureReadWrite.Linear,
+                    dilation:DilationType.Additive
+                    )
+            );
+        }
+    }
 
     private void OnTriggerStay(Collider other) {
         for(int i=0;i<strandAnchors.Count;i++) {
@@ -53,6 +84,24 @@ public class FluidStrandSpawner : MonoBehaviour {
             if (anchor.strand == null && other.ClosestPoint(anchorPoint) == anchorPoint) {
                 anchor.strand = new FluidParticleSystemVerletStrand(selfCollider.transform, anchor.position, other.transform, other.transform.InverseTransformPoint(anchorPoint), particleMaterial, fluidParticleSystemSettings, decalableHitMask);
                 FluidPass.AddParticleSystem(anchor.strand);
+                OnFluidCollision(new FluidParticleSystem.ParticleCollision() {
+                    collider = other,
+                    color = fluidParticleSystemSettings.color,
+                    heightStrength = fluidParticleSystemSettings.heightStrengthBase,
+                    normal = Vector3.forward,
+                    size = fluidParticleSystemSettings.splatSize*75f,
+                    position = anchorPoint,
+                    stretch = Vector3.zero,
+                });
+                OnFluidCollision(new FluidParticleSystem.ParticleCollision() {
+                    collider = selfCollider,
+                    color = fluidParticleSystemSettings.color,
+                    heightStrength = fluidParticleSystemSettings.heightStrengthBase,
+                    normal = Vector3.forward,
+                    size = fluidParticleSystemSettings.splatSize*75f,
+                    position = anchorPoint,
+                    stretch = Vector3.zero,
+                });
             }
             strandAnchors[i] = anchor;
         }
