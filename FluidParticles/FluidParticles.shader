@@ -4,7 +4,7 @@ Shader "FluidParticles"
 {
 	Properties
 	{
-		_MainTex("_MainTex", 2D) = "white" {}
+		_MainTex("MainTex", 2D) = "white" {}
 
 	}
 	
@@ -18,11 +18,11 @@ Shader "FluidParticles"
 		CGINCLUDE
 		#pragma target 3.0
 		ENDCG
-		Blend SrcAlpha OneMinusSrcAlpha, One OneMinusSrcAlpha
+		Blend SrcAlpha OneMinusSrcAlpha, One Zero
 		AlphaToMask Off
 		Cull Back
 		ColorMask RGBA
-		ZWrite On
+		ZWrite Off
 		ZTest LEqual
 		Offset 0 , 0
 		
@@ -256,28 +256,35 @@ Version=19603
 Node;AmplifyShaderEditor.VertexIdVariableNode;83;224,464;Inherit;False;0;1;INT;0
 Node;AmplifyShaderEditor.InstanceIdNode;24;192,544;Inherit;False;True;True;0;1;INT;0
 Node;AmplifyShaderEditor.CustomExpressionNode;22;432,512;Inherit;False;GetGrassInstance(instanceID, vertexID, grassMat, localPosition, localNormal, uv)@;7;File;7;True;vertexID;OBJECT;0;In;uint;Inherit;False;True;instanceID;OBJECT;0;In;uint;Inherit;False;True;localPosition;FLOAT3;0,0,0;Out;;Inherit;False;True;localNormal;FLOAT3;0,0,0;Out;;Inherit;False;True;uv;FLOAT2;0,0;Out;;Inherit;False;True;color;FLOAT4;0,0,0,0;Out;;Inherit;False;True;heightStrength;FLOAT;0;Out;;Inherit;False;GetParticle;False;False;0;be738ec41f05d8b4ba53d30aa46319dc;False;8;0;FLOAT;0;False;1;OBJECT;0;False;2;OBJECT;0;False;3;FLOAT3;0,0,0;False;4;FLOAT3;0,0,0;False;5;FLOAT2;0,0;False;6;FLOAT4;0,0,0,0;False;7;FLOAT;0;False;6;FLOAT;0;FLOAT3;4;FLOAT3;5;FLOAT2;6;FLOAT4;7;FLOAT;8
-Node;AmplifyShaderEditor.VertexToFragmentNode;239;816,912;Inherit;False;False;False;1;0;FLOAT2;0,0;False;1;FLOAT2;0
-Node;AmplifyShaderEditor.SamplerNode;11;1056,896;Inherit;True;Property;_MainTex;_MainTex;0;0;Create;True;0;0;0;False;0;False;-1;None;ae408e3a460eedc4eb89657b63168525;True;0;False;white;Auto;False;Object;-1;Auto;Texture2D;8;0;SAMPLER2D;;False;1;FLOAT2;0,0;False;2;FLOAT;0;False;3;FLOAT2;0,0;False;4;FLOAT2;0,0;False;5;FLOAT;1;False;6;FLOAT;0;False;7;SAMPLERSTATE;;False;6;COLOR;0;FLOAT;1;FLOAT;2;FLOAT;3;FLOAT;4;FLOAT3;5
+Node;AmplifyShaderEditor.VertexToFragmentNode;239;816,592;Inherit;False;False;False;1;0;FLOAT2;0,0;False;1;FLOAT2;0
+Node;AmplifyShaderEditor.TexturePropertyNode;274;800,240;Inherit;True;Property;_MainTex;MainTex;0;0;Create;True;0;0;0;False;0;False;None;ae408e3a460eedc4eb89657b63168525;False;white;Auto;Texture2D;-1;0;2;SAMPLER2D;0;SAMPLERSTATE;1
 Node;AmplifyShaderEditor.VertexToFragmentNode;272;816,672;Inherit;False;False;False;1;0;FLOAT;0;False;1;FLOAT;0
+Node;AmplifyShaderEditor.SamplerNode;11;1056,896;Inherit;True;Property;_MainTex2;_MainTex2;0;0;Create;True;0;0;0;False;0;False;-1;None;ae408e3a460eedc4eb89657b63168525;True;0;False;white;Auto;False;Object;-1;Auto;Texture2D;8;0;SAMPLER2D;;False;1;FLOAT2;0,0;False;2;FLOAT;0;False;3;FLOAT2;0,0;False;4;FLOAT2;0,0;False;5;FLOAT;1;False;6;FLOAT;0;False;7;SAMPLERSTATE;;False;6;COLOR;0;FLOAT;1;FLOAT;2;FLOAT;3;FLOAT;4;FLOAT3;5
 Node;AmplifyShaderEditor.ColorNode;271;1360,720;Inherit;False;Constant;_Color0;Color 0;1;0;Create;True;0;0;0;False;0;False;1,0,0,1;0,0,0,0;True;True;0;6;COLOR;0;FLOAT;1;FLOAT;2;FLOAT;3;FLOAT;4;FLOAT3;5
 Node;AmplifyShaderEditor.SimpleMultiplyOpNode;268;1408,944;Inherit;False;2;2;0;FLOAT;0;False;1;FLOAT;0;False;1;FLOAT;0
 Node;AmplifyShaderEditor.SimpleMultiplyOpNode;241;1600,912;Inherit;False;2;2;0;COLOR;0,0,0,0;False;1;FLOAT;0;False;1;COLOR;0
 Node;AmplifyShaderEditor.VertexToFragmentNode;265;816,448;Inherit;False;False;False;1;0;FLOAT4;0,0,0,0;False;1;FLOAT4;0
-Node;AmplifyShaderEditor.TemplateMultiPassMasterNode;269;1824,448;Float;False;True;-1;2;ASEMaterialInspector;100;18;FluidParticles;b199d6c4625f78a44954409d87f32159;True;FluidColor;0;0;FluidColor;2;True;True;2;5;False;;10;False;;3;1;False;;10;False;;True;0;False;;0;False;;False;False;False;False;False;False;False;False;False;True;0;False;;False;True;0;False;;False;True;True;True;True;True;0;False;;False;False;False;False;False;False;False;True;False;0;False;;255;False;;255;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;False;True;1;False;;True;3;False;;True;True;0;False;;0;False;;True;1;RenderType=Opaque=RenderType;True;2;False;0;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;0;;0;0;Standard;1;Vertex Position,InvertActionOnDeselection;0;638626588965330292;0;2;True;True;False;;False;0
+Node;AmplifyShaderEditor.SamplerNode;275;1072,352;Inherit;True;Property;_MainTex3;_MainTex2;0;0;Create;True;0;0;0;False;0;False;-1;None;ae408e3a460eedc4eb89657b63168525;True;0;False;white;Auto;False;Object;-1;Auto;Texture2D;8;0;SAMPLER2D;;False;1;FLOAT2;0,0;False;2;FLOAT;0;False;3;FLOAT2;0,0;False;4;FLOAT2;0,0;False;5;FLOAT;1;False;6;FLOAT;0;False;7;SAMPLERSTATE;;False;6;COLOR;0;FLOAT;1;FLOAT;2;FLOAT;3;FLOAT;4;FLOAT3;5
+Node;AmplifyShaderEditor.DynamicAppendNode;276;1496.54,376.5608;Inherit;False;FLOAT4;4;0;FLOAT4;0,0,0,0;False;1;FLOAT;0;False;2;FLOAT;0;False;3;FLOAT;0;False;1;FLOAT4;0
+Node;AmplifyShaderEditor.TemplateMultiPassMasterNode;269;1824,448;Float;False;True;-1;2;ASEMaterialInspector;100;18;FluidParticles;b199d6c4625f78a44954409d87f32159;True;FluidColor;0;0;FluidColor;2;True;True;2;5;False;;10;False;;1;1;False;;0;False;;True;0;False;;0;False;;False;False;False;False;False;False;False;False;False;True;0;False;;False;True;0;False;;False;True;True;True;True;True;0;False;;False;False;False;False;False;False;False;True;False;0;False;;255;False;;255;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;True;True;2;False;;True;3;False;;True;True;0;False;;0;False;;True;1;RenderType=Opaque=RenderType;True;2;False;0;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;0;;0;0;Standard;1;Vertex Position,InvertActionOnDeselection;0;638626588965330292;0;2;True;True;False;;False;0
 Node;AmplifyShaderEditor.TemplateMultiPassMasterNode;270;1824,576;Float;False;False;-1;2;ASEMaterialInspector;100;18;New Amplify Shader;b199d6c4625f78a44954409d87f32159;True;FluidHeight;0;1;FluidHeight;2;False;True;0;1;False;;0;False;;0;1;False;;0;False;;True;0;False;;0;False;;False;False;False;False;False;False;False;False;False;True;0;False;;False;True;0;False;;False;True;True;True;True;True;0;False;;False;False;False;False;False;False;False;True;False;0;False;;255;False;;255;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;False;True;1;False;;True;3;False;;True;True;0;False;;0;False;;True;1;RenderType=Opaque=RenderType;True;2;False;0;False;True;4;1;False;;1;False;;0;1;False;;0;False;;False;False;False;False;False;False;False;False;False;False;True;0;False;;False;True;2;False;;False;True;True;True;True;True;0;False;;False;False;False;False;False;False;False;False;False;True;2;False;;True;3;False;;False;False;False;False;0;;0;0;Standard;0;False;0
 WireConnection;22;1;83;0
 WireConnection;22;2;24;0
 WireConnection;239;0;22;6
-WireConnection;11;1;239;0
 WireConnection;272;0;22;8
+WireConnection;11;0;274;0
+WireConnection;11;1;239;0
 WireConnection;268;0;11;1
 WireConnection;268;1;272;0
 WireConnection;241;0;271;0
 WireConnection;241;1;268;0
 WireConnection;265;0;22;7
+WireConnection;275;0;274;0
+WireConnection;275;1;239;0
+WireConnection;276;0;265;0
 WireConnection;269;0;265;0
 WireConnection;269;1;22;4
 WireConnection;270;0;241;0
 WireConnection;270;1;22;4
 ASEEND*/
-//CHKSM=D25D5EBFD9C4B0396CC2C0EB599BC214C0997122
+//CHKSM=437F52303535ECD991FD419E5CA619ABC35F5903
