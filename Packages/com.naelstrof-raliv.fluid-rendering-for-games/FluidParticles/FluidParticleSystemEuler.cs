@@ -1,8 +1,6 @@
-using System;
-using System.Runtime.InteropServices;
 using UnityEngine;
-using UnityEngine.Rendering;
-using UnityEngine.Rendering.Universal;
+
+namespace FluidRenderingForGames {
 
 public class FluidParticleSystemEuler : FluidParticleSystem {
     public FluidParticleSystemEuler(Material material, FluidParticleSystemSettings fluidParticleSystemSettings, LayerMask collisionLayerMask, int particleCountMax = 3000) :
@@ -63,3 +61,6 @@ public class FluidParticleSystemEuler : FluidParticleSystem {
         return stretch;
     }
 }
+
+}
+

@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 51709a72c4826104e91f7ee5397b73f2, type: 3}
+  m_Name: CumSettings
+  m_EditorClassIdentifier: 
+  <baseVelocity>k__BackingField: 3
+  <particleBaseSize>k__BackingField: 0.1
+  <color>k__BackingField: {r: 1, g: 1, b: 1, a: 0.5}
+  <heightStrengthBase>k__BackingField: 0.015
+  <noiseStrength>k__BackingField: 0.2
+  <noiseFrequency>k__BackingField: 3
+  <noiseOctaves>k__BackingField: 3
+  <splatSize>k__BackingField: 0.001
+  <particleMaterial>k__BackingField: {fileID: 2100000, guid: 1ffacd69c2e9ceb4d9a1f7aafcb3a486,
+    type: 2}
+  <decalableHitMask>k__BackingField:
+    serializedVersion: 2
+    m_Bits: 4294967295

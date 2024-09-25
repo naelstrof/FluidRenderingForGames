@@ -4,7 +4,9 @@
       "version": "file:com.naelstrof-raliv.fluid-rendering-for-games",
       "depth": 0,
       "source": "embedded",
-      "dependencies": {}
+      "dependencies": {
+        "com.naelstrof.skinnedmeshdecals": "9.0.3"
+      }
     },
     "com.naelstrof.jigglephysics": {
       "version": "https://github.com/naelstrof/UnityJigglePhysics.git#upm",
