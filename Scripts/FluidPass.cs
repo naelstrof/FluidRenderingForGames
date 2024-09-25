@@ -1,14 +1,14 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
-using UnityEngine.Rendering.RendererUtils;
 using UnityEngine.Rendering.Universal;
 
+namespace FluidRenderingForGames {
 public class FluidPass : ScriptableRenderPass {
     private Material material;
-    
+
     private ProfilingSampler m_ProfilingSampler = new ProfilingSampler("FluidRendering_RenderFeature");
-    
+
     private RTHandle m_CameraColorTarget;
     private RTHandle m_CameraDepthTarget;
     private RTHandle m_FluidHeightBuffer;
@@ -18,7 +18,7 @@ public class FluidPass : ScriptableRenderPass {
     private int outputColorId = Shader.PropertyToID(outputColorName);
 
     private static List<FluidParticleSystem> systems = new();
-    
+
     public FluidPass(RenderPassEvent renderPassEvent, Material material) {
         this.material = material;
         this.renderPassEvent = renderPassEvent;
@@ -27,7 +27,7 @@ public class FluidPass : ScriptableRenderPass {
     public static void AddParticleSystem(FluidParticleSystem system) {
         systems.Add(system);
     }
-    
+
     public static void RemoveParticleSystem(FluidParticleSystem system) {
         systems.Remove(system);
     }
@@ -41,14 +41,14 @@ public class FluidPass : ScriptableRenderPass {
         ConfigureTarget(m_CameraColorTarget);
         ReAllocate(renderingData.cameraData.cameraTargetDescriptor);
     }
-    
+
     void ReAllocate(RenderTextureDescriptor desc) {
         desc.msaaSamples = 1;
         desc.depthBufferBits = (int)DepthBits.None;
         desc.colorFormat = RenderTextureFormat.RFloat;
         desc.sRGB = false;
         RenderingUtils.ReAllocateIfNeeded(ref m_FluidHeightBuffer, desc, name: "_FluidHeightBuffer");
-        
+
         desc.msaaSamples = 1;
         desc.depthBufferBits = (int)DepthBits.None;
         desc.colorFormat = RenderTextureFormat.Default;
@@ -64,7 +64,7 @@ public class FluidPass : ScriptableRenderPass {
         if (cameraData.cameraType != CameraType.Game && cameraData.cameraType != CameraType.SceneView) {
             return;
         }
-        
+
         CommandBuffer cmd = CommandBufferPool.Get();
         using (new ProfilingScope(cmd, m_ProfilingSampler)) {
             CoreUtils.SetRenderTarget(cmd, m_FluidHeightBuffer, m_CameraDepthTarget);
@@ -72,6 +72,7 @@ public class FluidPass : ScriptableRenderPass {
             foreach (var system in systems) {
                 system.RenderHeight(cmd);
             }
+
             CoreUtils.SetRenderTarget(cmd, m_FluidColorBuffer, m_CameraDepthTarget);
             CoreUtils.ClearRenderTarget(cmd, ClearFlag.Color, Color.clear);
             foreach (var system in systems) {
@@ -81,6 +82,7 @@ public class FluidPass : ScriptableRenderPass {
             cmd.SetGlobalTexture(outputColorId, m_FluidColorBuffer);
             Blitter.BlitCameraTexture(cmd, m_FluidHeightBuffer, m_CameraColorTarget, material, 0);
         }
+
         context.ExecuteCommandBuffer(cmd);
         cmd.Clear();
         CommandBufferPool.Release(cmd);
@@ -88,4 +90,6 @@ public class FluidPass : ScriptableRenderPass {
 
     public void Dispose() {
     }
+}
+
 }
