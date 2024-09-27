@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -43,13 +44,20 @@ public class FluidPass : ScriptableRenderPass {
     }
 
     void ReAllocate(RenderTextureDescriptor desc) {
-        desc.msaaSamples = 1;
+        UniversalRenderPipelineAsset data = GraphicsSettings.currentRenderPipeline as UniversalRenderPipelineAsset;
+        if (!data) {
+            throw new Exception( "FluidRenderingForGames: Failed to detect URP render settings, are you using URP? And do settings exist and are set appropriately within Graphics and Quality settings?");
+        }
+        
+        var samples = data.msaaSampleCount;
+        
+        desc.msaaSamples = samples;
         desc.depthBufferBits = (int)DepthBits.None;
         desc.colorFormat = RenderTextureFormat.RFloat;
         desc.sRGB = false;
         RenderingUtils.ReAllocateIfNeeded(ref m_FluidHeightBuffer, desc, name: "_FluidHeightBuffer");
 
-        desc.msaaSamples = 1;
+        desc.msaaSamples = samples;
         desc.depthBufferBits = (int)DepthBits.None;
         desc.colorFormat = RenderTextureFormat.Default;
         desc.sRGB = true;
