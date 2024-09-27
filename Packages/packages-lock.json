@@ -5,7 +5,7 @@
       "depth": 0,
       "source": "embedded",
       "dependencies": {
-        "com.naelstrof.skinnedmeshdecals": "9.0.3"
+        "com.naelstrof.skinnedmeshdecals": "9.0.4"
       }
     },
     "com.naelstrof.jigglephysics": {
@@ -16,11 +16,11 @@
       "hash": "7ba45cc1603eb95a0d1f4f31fdcbe6b787cf3e7b"
     },
     "com.naelstrof.skinnedmeshdecals": {
-      "version": "https://github.com/naelstrof/SkinnedMeshDecals.git#v9.0.3",
+      "version": "https://github.com/naelstrof/SkinnedMeshDecals.git#v9.0.4",
       "depth": 0,
       "source": "git",
       "dependencies": {},
-      "hash": "a02cf0df628e1977b0d41a957cf430ceaaa3cd92"
+      "hash": "8c267694b18b32e63e571ccca6ffa8cfa223589f"
     },
     "com.unity.burst": {
       "version": "1.8.15",
