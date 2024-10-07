@@ -8,6 +8,13 @@ using UnityEditor;
 
 namespace FluidRenderingForGames {
 public class FluidEmitter : MonoBehaviour {
+    
+    private static Material sourceDecalProjectorAlphaWrite;
+
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    static void LoadDecalProjectorAlphaWrite() {
+        sourceDecalProjectorAlphaWrite = Resources.Load<Material>("SphereProjectorAlphaWrite");
+    }
 
     [SerializeField] private FluidParticleSystemSettings fluidParticleSystemSettings;
     [SerializeField, Range(0f, 1f)] private float _velocityMultiplier = 1f;
@@ -19,12 +26,14 @@ public class FluidEmitter : MonoBehaviour {
     private float _velocity;
     private float _previousVelocity;
     private SceneView targetSceneView;
+    private Material decalProjectorAlphaWrite;
 
     private void OnEnable() {
         _fluidParticleSystem = new FluidParticleSystemEuler(fluidParticleSystemSettings.particleMaterial,
             fluidParticleSystemSettings, fluidParticleSystemSettings.decalableHitMask);
         _fluidParticleSystem.particleCollisionEvent += OnFluidCollision;
         FluidPass.AddParticleSystem(_fluidParticleSystem);
+        decalProjectorAlphaWrite = Instantiate(sourceDecalProjectorAlphaWrite);
     }
 
     private void OnFluidCollision(FluidParticleSystem.ParticleCollision particleCollision) {
@@ -39,8 +48,9 @@ public class FluidEmitter : MonoBehaviour {
         //    Color.red,
         //    0.5f
         //    );
+        decalProjectorAlphaWrite.color = particleCollision.color;
         PaintDecal.QueueDecal(particleCollision.collider,
-            new DecalProjector(DecalProjectorType.SphereAlpha, particleCollision.color),
+            decalProjectorAlphaWrite,
             new DecalProjection(
                 particleCollision.position,
                 rotation,

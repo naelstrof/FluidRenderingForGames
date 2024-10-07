@@ -3,11 +3,16 @@ using UnityEngine;
 namespace FluidRenderingForGames {
 
 public class FluidParticleSystemEuler : FluidParticleSystem {
-    public FluidParticleSystemEuler(Material material, FluidParticleSystemSettings fluidParticleSystemSettings, LayerMask collisionLayerMask, int particleCountMax = 3000) :
-        base(material, fluidParticleSystemSettings, collisionLayerMask, particleCountMax) {
+    public FluidParticleSystemEuler(
+        Material material, 
+        FluidParticleSystemSettings fluidParticleSystemSettings, 
+        LayerMask collisionLayerMask, 
+        int particleCountMax = 1000
+        ) : base(material, fluidParticleSystemSettings, collisionLayerMask, particleCountMax) {
     }
     protected override void UpdateParticles() {
         for (var index = 0; index < _particles.Length; index++) {
+            if (_particles[index].heightStrength <= 0.01f) continue;
             var positionStep = _particlePhysics[index].velocity * Time.deltaTime;
             if (_particlePhysics[index].Colliding && _particles[index].heightStrength>0f) {
                 if (Physics.Raycast(_particles[index].position, positionStep, out var hit, positionStep.magnitude, _collisionLayerMask)) {
@@ -29,6 +34,7 @@ public class FluidParticleSystemEuler : FluidParticleSystem {
             }
         }
         for (var index = 0; index < _particles.Length; index++) {
+            if (_particles[index].heightStrength <= 0.01f) continue;
             _particles[index].position += _particlePhysics[index].velocity * Time.deltaTime;
             // TODO: can fade based on proximity to being respawned
             //_particles[index].volume = Mathf.Max(0f, _particles[index].volume-Time.deltaTime*0.3f);
