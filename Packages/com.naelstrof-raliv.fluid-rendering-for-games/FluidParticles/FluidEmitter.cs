@@ -19,7 +19,6 @@ public class FluidEmitter : MonoBehaviour {
     private float _velocity;
     private float _previousVelocity;
     private SceneView targetSceneView;
-    private bool printedConfigurationIssue = false;
 
     private void OnEnable() {
         _fluidParticleSystem = new FluidParticleSystemEuler(fluidParticleSystemSettings.particleMaterial,
@@ -29,46 +28,36 @@ public class FluidEmitter : MonoBehaviour {
     }
 
     private void OnFluidCollision(FluidParticleSystem.ParticleCollision particleCollision) {
-        if (!particleCollision.collider.TryGetComponent(out DecalableCollider decalableCollider)) {
-            if (printedConfigurationIssue) return;
-            Debug.LogWarning( "Failed to decal object: Its missing a DecalableCollider! <color=cyan>This is a misconfiguration issue, either remove it from the layers or add a decalable collider. This will only print once.</color>");
-            printedConfigurationIssue = true;
-            return;
-        }
-
-        foreach (var rend in decalableCollider.decalableRenderers) {
-            if (!rend) continue;
-            var stretch = particleCollision.stretch;
-            var bounds =
-                new Vector3(particleCollision.size, stretch.magnitude,
-                    particleCollision.size * 6f); // the magic number is depth for misaligned colliders
-            var rotation = Quaternion.LookRotation(-particleCollision.normal, stretch);
-            //Debug.DrawLine(
-            //    particleCollision.position-rotation*Vector3.up*stretch.magnitude,
-            //    particleCollision.position+rotation*Vector3.up*stretch.magnitude,
-            //    Color.red,
-            //    0.5f
-            //    );
-            PaintDecal.RenderDecal(rend,
-                new DecalProjector(DecalProjectorType.SphereAlpha, particleCollision.color),
-                new DecalProjection(
-                    particleCollision.position,
-                    rotation,
-                    bounds * 1.5f
-                )
-            );
-            PaintDecal.RenderDecal(rend,
-                new DecalProjector(DecalProjectorType.SphereAdditive,
-                    new Color(particleCollision.heightStrength, 0f, 0f, 1f)),
-                new DecalProjection(particleCollision.position, rotation, bounds),
-                new DecalSettings(
-                    textureName: "_FluidHeight",
-                    renderTextureFormat: RenderTextureFormat.RFloat,
-                    renderTextureReadWrite: RenderTextureReadWrite.Linear,
-                    dilation: DilationType.Additive
-                )
-            );
-        }
+        var stretch = particleCollision.stretch;
+        var bounds =
+            new Vector3(particleCollision.size, stretch.magnitude,
+                particleCollision.size * 6f); // the magic number is depth for misaligned colliders
+        var rotation = Quaternion.LookRotation(-particleCollision.normal, stretch);
+        //Debug.DrawLine(
+        //    particleCollision.position-rotation*Vector3.up*stretch.magnitude,
+        //    particleCollision.position+rotation*Vector3.up*stretch.magnitude,
+        //    Color.red,
+        //    0.5f
+        //    );
+        PaintDecal.QueueDecal(particleCollision.collider,
+            new DecalProjector(DecalProjectorType.SphereAlpha, particleCollision.color),
+            new DecalProjection(
+                particleCollision.position,
+                rotation,
+                bounds * 1.5f
+            )
+        );
+        PaintDecal.QueueDecal(particleCollision.collider,
+            new DecalProjector(DecalProjectorType.SphereAdditive,
+                new Color(particleCollision.heightStrength, 0f, 0f, 1f)),
+            new DecalProjection(particleCollision.position, rotation, bounds),
+            new DecalSettings(
+                textureName: "_FluidHeight",
+                renderTextureFormat: RenderTextureFormat.RFloat,
+                renderTextureReadWrite: RenderTextureReadWrite.Linear,
+                dilation: DilationType.Additive
+            )
+        );
     }
 
     private void OnDisable() {
