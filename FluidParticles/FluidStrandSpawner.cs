@@ -49,34 +49,27 @@ public class FluidStrandSpawner : MonoBehaviour {
     }
 
     private void OnFluidCollision(FluidParticleSystem.ParticleCollision particleCollision) {
-        if (!particleCollision.collider.TryGetComponent(out DecalableCollider decalableCollider)) {
-            return;
-        }
-
-        foreach (var rend in decalableCollider.decalableRenderers) {
-            if (!rend) continue;
-            var projection =
-                new DecalProjection(
-                    particleCollision.position,
-                    particleCollision.normal,
-                    particleCollision.size
-                );
-            PaintDecal.RenderDecal(rend,
-                new DecalProjector(DecalProjectorType.SphereAlpha, particleCollision.color),
-                projection
+        var projection =
+            new DecalProjection(
+                particleCollision.position,
+                particleCollision.normal,
+                particleCollision.size
             );
-            PaintDecal.RenderDecal(rend,
-                new DecalProjector(DecalProjectorType.SphereAdditive,
-                    new Color(particleCollision.heightStrength, 0f, 0f, 1f)),
-                projection,
-                new DecalSettings(
-                    textureName: "_FluidHeight",
-                    renderTextureFormat: RenderTextureFormat.RFloat,
-                    renderTextureReadWrite: RenderTextureReadWrite.Linear,
-                    dilation: DilationType.Additive
-                )
-            );
-        }
+        PaintDecal.QueueDecal(particleCollision.collider,
+            new DecalProjector(DecalProjectorType.SphereAlpha, particleCollision.color),
+            projection
+        );
+        PaintDecal.QueueDecal(particleCollision.collider,
+            new DecalProjector(DecalProjectorType.SphereAdditive,
+                new Color(particleCollision.heightStrength, 0f, 0f, 1f)),
+            projection,
+            new DecalSettings(
+                textureName: "_FluidHeight",
+                renderTextureFormat: RenderTextureFormat.RFloat,
+                renderTextureReadWrite: RenderTextureReadWrite.Linear,
+                dilation: DilationType.Additive
+            )
+        );
     }
 
     private void OnTriggerStay(Collider other) {
