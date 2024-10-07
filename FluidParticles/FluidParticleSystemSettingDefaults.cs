@@ -25,7 +25,7 @@ public static class FluidParticleSystemSettingsDefaults {
             baseVelocity: 3f,
             particleBaseSize: 0.1f,
             color: new Color(1,1,1,0.5f),
-            heightStrengthBase: 0.015f,
+            heightStrengthBase: 0.03f,
             noiseStrength: 0.2f,
             noiseFrequency: 3f,
             noiseOctaves: 3,

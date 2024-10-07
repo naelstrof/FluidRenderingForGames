@@ -19,7 +19,7 @@ public class FluidParticleSystemEuler : FluidParticleSystem {
                     TriggerParticleCollisionEvent(new ParticleCollision() {
                         collider = hit.collider,
                         position = hit.point,
-                        normal = _particlePhysics[index].velocity,
+                        normal = -_particlePhysics[index].velocity,
                         size = _particles[index].size,
                         color = _particles[index].color,
                         heightStrength = _particles[index].heightStrength,
