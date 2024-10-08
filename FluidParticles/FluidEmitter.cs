@@ -9,7 +9,7 @@ using UnityEditor;
 namespace FluidRenderingForGames {
 public class FluidEmitter : MonoBehaviour {
     
-    private static Material sourceDecalProjectorAlphaWrite;
+    internal static Material sourceDecalProjectorAlphaWrite;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
     static void LoadDecalProjectorAlphaWrite() {
@@ -41,7 +41,6 @@ public class FluidEmitter : MonoBehaviour {
         var bounds =
             new Vector3(particleCollision.size, stretch.magnitude,
                 particleCollision.size * 6f); // the magic number is depth for misaligned colliders
-        Debug.Log(bounds);
         var rotation = Quaternion.LookRotation(-particleCollision.normal, stretch);
         //Debug.DrawLine(
         //    particleCollision.position-rotation*Vector3.up*stretch.magnitude,
