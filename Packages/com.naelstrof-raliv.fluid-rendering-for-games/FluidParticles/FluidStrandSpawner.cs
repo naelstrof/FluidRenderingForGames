@@ -17,9 +17,11 @@ public class FluidStrandSpawner : MonoBehaviour {
     }
 
     private Collider selfCollider;
+    private Material decalProjectorAlphaWrite;
 
     private void OnEnable() {
         selfCollider = GetComponentInChildren<Collider>();
+        decalProjectorAlphaWrite = Instantiate(FluidEmitter.sourceDecalProjectorAlphaWrite);
     }
 
     private void OnDisable() {
@@ -55,8 +57,9 @@ public class FluidStrandSpawner : MonoBehaviour {
                 particleCollision.normal,
                 particleCollision.size
             );
+        decalProjectorAlphaWrite.color = particleCollision.color;
         PaintDecal.QueueDecal(particleCollision.collider,
-            new DecalProjector(DecalProjectorType.SphereAlpha, particleCollision.color),
+            decalProjectorAlphaWrite,
             projection
         );
         PaintDecal.QueueDecal(particleCollision.collider,
