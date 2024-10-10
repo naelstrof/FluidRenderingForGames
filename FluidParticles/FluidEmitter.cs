@@ -39,8 +39,8 @@ public class FluidEmitter : MonoBehaviour {
     private void OnFluidCollision(FluidParticleSystem.ParticleCollision particleCollision) {
         var stretch = particleCollision.stretch;
         var bounds =
-            new Vector3(particleCollision.size, stretch.magnitude,
-                particleCollision.size * 6f); // the magic number is depth for misaligned colliders
+            new Vector3(particleCollision.size * fluidParticleSystemSettings.splatSize, stretch.magnitude,
+                particleCollision.size * 6f * fluidParticleSystemSettings.splatSize); // the magic number is depth for misaligned colliders
         var rotation = Quaternion.LookRotation(-particleCollision.normal, stretch);
         //Debug.DrawLine(
         //    particleCollision.position-rotation*Vector3.up*stretch.magnitude,

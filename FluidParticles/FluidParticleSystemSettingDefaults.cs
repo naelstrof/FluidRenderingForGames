@@ -29,7 +29,7 @@ public static class FluidParticleSystemSettingsDefaults {
             noiseStrength: 0.2f,
             noiseFrequency: 3f,
             noiseOctaves: 3,
-            splatSize: 0.001f,
+            splatSize: 1f,
             particleMaterial: material
         );
         ProjectWindowUtil.CreateAsset(cum, GetActiveFolderPath() + "/CumSettings.asset");
