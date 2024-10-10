@@ -89,7 +89,7 @@ public class FluidStrandSpawner : MonoBehaviour {
                     color = fluidParticleSystemSettings.color,
                     heightStrength = fluidParticleSystemSettings.heightStrengthBase,
                     normal = Vector3.forward,
-                    size = fluidParticleSystemSettings.splatSize * 75f,
+                    size = fluidParticleSystemSettings.splatSize,
                     position = anchorPoint,
                     stretch = Vector3.zero,
                 });
@@ -98,7 +98,7 @@ public class FluidStrandSpawner : MonoBehaviour {
                     color = fluidParticleSystemSettings.color,
                     heightStrength = fluidParticleSystemSettings.heightStrengthBase,
                     normal = Vector3.forward,
-                    size = fluidParticleSystemSettings.splatSize * 75f,
+                    size = fluidParticleSystemSettings.splatSize,
                     position = anchorPoint,
                     stretch = Vector3.zero,
                 });

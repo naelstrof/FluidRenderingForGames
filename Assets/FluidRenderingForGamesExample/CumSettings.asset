@@ -19,7 +19,7 @@ MonoBehaviour:
   <noiseStrength>k__BackingField: 0.2
   <noiseFrequency>k__BackingField: 3
   <noiseOctaves>k__BackingField: 3
-  <splatSize>k__BackingField: 0.001
+  <splatSize>k__BackingField: 1
   <particleMaterial>k__BackingField: {fileID: 2100000, guid: 1ffacd69c2e9ceb4d9a1f7aafcb3a486,
     type: 2}
   <decalableHitMask>k__BackingField:
