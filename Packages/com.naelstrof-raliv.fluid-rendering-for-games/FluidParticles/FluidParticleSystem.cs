@@ -31,15 +31,15 @@ public abstract class FluidParticleSystem {
     protected struct ParticlePhysics {
         public Vector3 lastPosition;
         public Vector3 velocity;
-        public bool Colliding;
+        public bool colliding;
     }
 
     protected Particle[] _particles;
     protected ParticlePhysics[] _particlePhysics;
+    protected int _particleSpawnIndex;
     private Material _material;
     private GraphicsBuffer _particleBuffer;
     private MaterialPropertyBlock _materialPropertyBlock;
-    private int _particleSpawnIndex;
     private float _strength;
     private FluidParticleSystemSettings _fluidParticleSystemSettings;
     protected LayerMask _collisionLayerMask;
@@ -55,8 +55,13 @@ public abstract class FluidParticleSystem {
 
     public event ParticleCollisionEventDelegate particleCollisionEvent;
 
-    protected void TriggerParticleCollisionEvent(ParticleCollision particleCollision) {
+    protected void TriggerParticleCollisionEvent(ParticleCollision particleCollision, int particleIndex) {
         particleCollisionEvent?.Invoke(particleCollision);
+        var walk = particleIndex;
+        do {
+            _particles[walk].heightStrength = 0f;
+            walk = (walk + 1) % _particlePhysics.Length;
+        } while (!_particlePhysics[walk].colliding && walk!=_particleSpawnIndex);
     }
 
     public FluidParticleSystem(Material material, FluidParticleSystemSettings fluidParticleSystemSettings,
@@ -98,47 +103,63 @@ public abstract class FluidParticleSystem {
         return noise;
     }
 
+    public struct InterpolatedParticleInfo {
+        public Vector3 position;
+        public Vector3 forward;
+        public float velocity;
+        public float heightStrength;
+        public static InterpolatedParticleInfo Lerp(
+            InterpolatedParticleInfo a,
+            InterpolatedParticleInfo b,
+            float t) {
+            return new InterpolatedParticleInfo() {
+                position = Vector3.Lerp(a.position, b.position, t),
+                forward = Vector3.Lerp(a.forward, b.forward, t),
+                velocity = Mathf.Lerp(a.velocity, b.velocity, t),
+                heightStrength = Mathf.Lerp(a.heightStrength, b.heightStrength, t)
+            };
+        }
+    }
+
     public void SpawnParticle(
-        Vector3 position,
-        Vector3 previousPosition,
-        Vector3 forward,
-        Vector3 previousForward,
-        float velocity,
-        float previousVelocity,
+        InterpolatedParticleInfo currentParticleInfo,
+        InterpolatedParticleInfo previousParticleInfo,
         float size,
         Color color,
-        float heightStrength,
+        float deltaTime,
         float subT = 0f,
         bool colliding = false
     ) {
-        var subTime = Time.timeSinceLevelLoad - Time.deltaTime * subT;
+        var subTime = Time.timeSinceLevelLoad - deltaTime * subT;
         var velocityNoise = Vector3.one * (1f - _fluidParticleSystemSettings.noiseStrength * 0.5f) +
                             GenerateVelocityNoise(subTime) * _fluidParticleSystemSettings.noiseStrength;
-        var particleVelocity = Vector3.Lerp(forward, previousForward, subT);
+        var interpolatedParticleInfo =
+            InterpolatedParticleInfo.Lerp(currentParticleInfo, previousParticleInfo, subT);
+        var particleVelocity = interpolatedParticleInfo.forward;
         particleVelocity.Scale(velocityNoise);
-        particleVelocity *= Mathf.Lerp(velocity, previousVelocity, subT);
+        particleVelocity *= interpolatedParticleInfo.velocity;
         _particles[_particleSpawnIndex] = new Particle {
-            position = Vector3.Lerp(position, previousPosition, subT) - particleVelocity * Time.deltaTime,
+            position = interpolatedParticleInfo.position,
             size = size * (1f - velocityNoise.x * 0.5f),
             color = color,
-            heightStrength = heightStrength
+            heightStrength = interpolatedParticleInfo.heightStrength
         };
         _particlePhysics[_particleSpawnIndex] = new ParticlePhysics {
             velocity = particleVelocity,
         };
         _particles[_particleSpawnIndex].position +=
-            _particlePhysics[_particleSpawnIndex].velocity * (Time.deltaTime * subT);
-        _particlePhysics[_particleSpawnIndex].velocity += Physics.gravity * (Time.deltaTime * subT);
-        _particlePhysics[_particleSpawnIndex].Colliding = colliding;
+            _particlePhysics[_particleSpawnIndex].velocity * (deltaTime * subT);
+        _particlePhysics[_particleSpawnIndex].velocity += Physics.gravity * (deltaTime * subT);
+        _particlePhysics[_particleSpawnIndex].colliding = colliding;
         _particleSpawnIndex = (_particleSpawnIndex + 1) % _particles.Length;
     }
 
-    public void FixedUpdate() {
-        UpdateParticles();
+    public void Update(float dt) {
+        UpdateParticles(dt);
         _particleBuffer.SetData(_particles);
     }
 
-    protected abstract void UpdateParticles();
+    protected abstract void UpdateParticles(float dt);
 
     void Initialize() {
         // TODO: staticly initialize or separate out

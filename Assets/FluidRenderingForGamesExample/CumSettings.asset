@@ -15,7 +15,7 @@ MonoBehaviour:
   <baseVelocity>k__BackingField: 3
   <particleBaseSize>k__BackingField: 0.1
   <color>k__BackingField: {r: 0, g: 0.46707344, b: 1, a: 0.5}
-  <heightStrengthBase>k__BackingField: 0.015
+  <heightStrengthBase>k__BackingField: 0.03
   <noiseStrength>k__BackingField: 0.2
   <noiseFrequency>k__BackingField: 3
   <noiseOctaves>k__BackingField: 3

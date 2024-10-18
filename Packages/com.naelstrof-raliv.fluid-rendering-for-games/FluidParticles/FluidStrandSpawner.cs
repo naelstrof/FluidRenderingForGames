@@ -46,7 +46,7 @@ public class FluidStrandSpawner : MonoBehaviour {
                 strandAnchors[i] = strand;
             }
 
-            strandAnchors[i].strand?.FixedUpdate();
+            strandAnchors[i].strand?.Update(Time.deltaTime);
         }
     }
 
