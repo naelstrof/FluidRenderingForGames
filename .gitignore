@@ -73,3 +73,7 @@ crashlytics-build.properties
 /.idea
 /Assets/AmplifyShaderEditor
 Assets/AmplifyShaderEditor.meta
+/Assets/UMotionEditor
+/UMotionData/AutoBackups
+Assets/UMotionEditor.meta
+/UMotionData
