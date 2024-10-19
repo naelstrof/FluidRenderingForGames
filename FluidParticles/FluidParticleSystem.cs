@@ -127,14 +127,15 @@ public abstract class FluidParticleSystem {
         float size,
         Color color,
         float deltaTime,
+        float subM = 0f,
         float subT = 0f,
         bool colliding = false
     ) {
-        var subTime = Time.timeSinceLevelLoad - deltaTime * subT;
+        var subTime = Time.timeSinceLevelLoad - deltaTime * (1f-subT); // TODO: THIS NEEDS A TICKTIME
         var velocityNoise = Vector3.one * (1f - _fluidParticleSystemSettings.noiseStrength * 0.5f) +
                             GenerateVelocityNoise(subTime) * _fluidParticleSystemSettings.noiseStrength;
         var interpolatedParticleInfo =
-            InterpolatedParticleInfo.Lerp(currentParticleInfo, previousParticleInfo, subT);
+            InterpolatedParticleInfo.Lerp(previousParticleInfo, currentParticleInfo, subM);
         var particleVelocity = interpolatedParticleInfo.forward;
         particleVelocity.Scale(velocityNoise);
         particleVelocity *= interpolatedParticleInfo.velocity;
@@ -148,18 +149,18 @@ public abstract class FluidParticleSystem {
             velocity = particleVelocity,
         };
         _particles[_particleSpawnIndex].position +=
-            _particlePhysics[_particleSpawnIndex].velocity * (deltaTime * subT);
-        _particlePhysics[_particleSpawnIndex].velocity += Physics.gravity * (deltaTime * subT);
+            _particlePhysics[_particleSpawnIndex].velocity * (deltaTime * (1f-subT));
+        _particlePhysics[_particleSpawnIndex].velocity += Physics.gravity * (deltaTime * (1f-subT));
         _particlePhysics[_particleSpawnIndex].colliding = colliding;
         _particleSpawnIndex = (_particleSpawnIndex + 1) % _particles.Length;
     }
 
-    public void Update(float dt) {
-        UpdateParticles(dt);
+    public void Update(float deltaTime) {
+        UpdateParticles(deltaTime);
         _particleBuffer.SetData(_particles);
     }
 
-    protected abstract void UpdateParticles(float dt);
+    protected abstract void UpdateParticles(float deltaTime);
 
     void Initialize() {
         // TODO: staticly initialize or separate out

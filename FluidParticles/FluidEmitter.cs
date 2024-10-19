@@ -29,7 +29,7 @@ namespace FluidRenderingForGames {
         private float _previousHeightStrength;
         private SceneView targetSceneView;
         private Material decalProjectorAlphaWrite;
-        private double _lastTick;
+        private float _accumulatedTickTime;
 
         private void OnEnable() {
             _fluidParticleSystem = new FluidParticleSystemEuler(fluidParticleSystemSettings.particleMaterial,
@@ -37,7 +37,6 @@ namespace FluidRenderingForGames {
             _fluidParticleSystem.particleCollisionEvent += OnFluidCollision;
             FluidPass.AddParticleSystem(_fluidParticleSystem);
             decalProjectorAlphaWrite = Instantiate(sourceDecalProjectorAlphaWrite);
-            _lastTick = Time.timeSinceLevelLoad;
         }
 
         private void OnFluidCollision(FluidParticleSystem.ParticleCollision particleCollision) {
@@ -82,12 +81,15 @@ namespace FluidRenderingForGames {
 
         private void Update() {
             var tickTime = 0.02f;
-            var queuedTicks = Mathf.Floor((float)(Time.timeSinceLevelLoad - _lastTick) / tickTime);
+            _accumulatedTickTime += Time.deltaTime;
+            var queuedTicks = Mathf.Floor(_accumulatedTickTime / tickTime);
             for (int currentTick=0;currentTick<queuedTicks;currentTick++) {
-                Tick(tickTime, currentTick/queuedTicks, (currentTick+1)/queuedTicks);
+                var subTBegin = currentTick / queuedTicks;
+                var subTEnd = (currentTick+1)/queuedTicks;
+                Tick(tickTime, subTBegin, subTEnd);
             }
             if (queuedTicks > 0) {
-                _lastTick += queuedTicks*tickTime;
+                _accumulatedTickTime -= queuedTicks*tickTime;
                 _previousForward = transform.forward;
                 _previousPosition = transform.position;
                 _previousVelocity = _velocity;
@@ -95,10 +97,11 @@ namespace FluidRenderingForGames {
             }
         }
 
-        private void Tick(float deltaTime, float subTBegin=0f, float subTEnd=0f) {
+        private void Tick(float deltaTime, float subTBegin=0f, float subTEnd=1f) {
             if (!Application.isPlaying) {
                 return;
             }
+            
             _velocity = fluidParticleSystemSettings.baseVelocity * _velocityMultiplier;
             var _heightStrength = fluidParticleSystemSettings.heightStrengthBase * _heightStrengthMultiplier;
             int subParticles = 1 + (int)(_velocity * 8);
@@ -120,10 +123,10 @@ namespace FluidRenderingForGames {
                     fluidParticleSystemSettings.color,
                     deltaTime,
                     Mathf.Lerp(subTBegin, subTEnd, (float)i / subParticles),
+                    (float)i / subParticles,
                     i == 0
                 );
             }
-
             _fluidParticleSystem.Update(deltaTime);
         }
 

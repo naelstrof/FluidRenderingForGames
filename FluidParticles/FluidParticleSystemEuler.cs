@@ -12,10 +12,10 @@ namespace FluidRenderingForGames {
             ) : base(material, fluidParticleSystemSettings, collisionLayerMask, particleCountMax) {
         }
         
-        protected override void UpdateParticles(float dt) {
+        protected override void UpdateParticles(float deltaTime) {
             for (var index = 0; index < _particles.Length; index++) {
                 if (_particles[index].heightStrength <= 0.01f) continue;
-                var positionStep = _particlePhysics[index].velocity * dt;
+                var positionStep = _particlePhysics[index].velocity * deltaTime;
                 if (_particlePhysics[index].colliding && _particles[index].heightStrength>0f) {
                     if (Physics.Raycast(_particles[index].position, positionStep, out var hit, positionStep.magnitude, _collisionLayerMask)) {
                         TriggerParticleCollisionEvent(new ParticleCollision() {
@@ -32,10 +32,10 @@ namespace FluidRenderingForGames {
             }
             for (var index = 0; index < _particles.Length; index++) {
                 if (_particles[index].heightStrength == 0f) continue;
-                _particles[index].position += _particlePhysics[index].velocity * dt;
+                _particles[index].position += _particlePhysics[index].velocity * deltaTime;
                 // TODO: can fade based on proximity to being respawned
                 //_particles[index].volume = Mathf.Max(0f, _particles[index].volume-dt*0.3f);
-                _particlePhysics[index].velocity += Physics.gravity * dt;
+                _particlePhysics[index].velocity += Physics.gravity * deltaTime;
             }
         }
 
