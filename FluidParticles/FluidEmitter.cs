@@ -83,9 +83,10 @@ namespace FluidRenderingForGames {
             var tickTime = 0.02f;
             _accumulatedTickTime += Time.deltaTime;
             var queuedTicks = Mathf.Floor(_accumulatedTickTime / tickTime);
-            for (int currentTick=0;currentTick<queuedTicks;currentTick++) {
-                var subTBegin = currentTick / queuedTicks;
-                var subTEnd = (currentTick+1)/queuedTicks;
+            var clampedQueuedTicks = Mathf.Min(queuedTicks, 2);
+            for (int currentTick=0;currentTick<clampedQueuedTicks;currentTick++) {
+                var subTBegin = currentTick / clampedQueuedTicks;
+                var subTEnd = (currentTick+1)/clampedQueuedTicks;
                 Tick(tickTime, subTBegin, subTEnd);
             }
             if (queuedTicks > 0) {
