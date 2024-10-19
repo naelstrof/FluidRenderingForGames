@@ -127,11 +127,12 @@ public abstract class FluidParticleSystem {
         float size,
         Color color,
         float deltaTime,
+        float tickTime,
         float subM = 0f,
         float subT = 0f,
         bool colliding = false
     ) {
-        var subTime = Time.timeSinceLevelLoad - deltaTime * (1f-subT); // TODO: THIS NEEDS A TICKTIME
+        var subTime = tickTime - deltaTime * (1f-subT);
         var velocityNoise = Vector3.one * (1f - _fluidParticleSystemSettings.noiseStrength * 0.5f) +
                             GenerateVelocityNoise(subTime) * _fluidParticleSystemSettings.noiseStrength;
         var interpolatedParticleInfo =
