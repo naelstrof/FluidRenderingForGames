@@ -30,6 +30,7 @@ namespace FluidRenderingForGames {
         private SceneView targetSceneView;
         private Material decalProjectorAlphaWrite;
         private float _accumulatedTickTime;
+        private float _tickTime;
 
         private void OnEnable() {
             _fluidParticleSystem = new FluidParticleSystemEuler(fluidParticleSystemSettings.particleMaterial,
@@ -102,7 +103,9 @@ namespace FluidRenderingForGames {
             if (!Application.isPlaying) {
                 return;
             }
-            
+
+            _tickTime += deltaTime;
+            if (_tickTime > 10000f) _tickTime = 0f;
             _velocity = fluidParticleSystemSettings.baseVelocity * _velocityMultiplier;
             var _heightStrength = fluidParticleSystemSettings.heightStrengthBase * _heightStrengthMultiplier;
             int subParticles = 1 + (int)(_velocity * 8);
@@ -123,6 +126,7 @@ namespace FluidRenderingForGames {
                     fluidParticleSystemSettings.particleBaseSize,
                     fluidParticleSystemSettings.color,
                     deltaTime,
+                    _tickTime,
                     Mathf.Lerp(subTBegin, subTEnd, (float)i / subParticles),
                     (float)i / subParticles,
                     i == 0
