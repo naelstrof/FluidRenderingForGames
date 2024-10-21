@@ -9,8 +9,6 @@ public abstract class FluidParticleSystem {
 
     protected int particleCountMax;
 
-    //[SerializeField] private LightProbeProxyVolume lightProbeVolume;
-
     public struct Particle {
         public Vector3 position;
         public float size;
@@ -43,6 +41,9 @@ public abstract class FluidParticleSystem {
     private float _strength;
     private FluidParticleSystemSettings _fluidParticleSystemSettings;
     protected LayerMask _collisionLayerMask;
+    private Color[] lightProbeOutputColors;
+    private Vector3[] lightProbeSampleDirections;
+    private Vector3 lastEmittedPosition;
 
     private GraphicsBuffer _meshTriangles;
     private GraphicsBuffer _meshNormals;
@@ -52,6 +53,7 @@ public abstract class FluidParticleSystem {
     private static readonly int ParticleUVs = Shader.PropertyToID("_ParticleUVs");
     private static readonly int ParticleCount = Shader.PropertyToID("_ParticleCount");
     private static readonly int Particle1 = Shader.PropertyToID("_Particle");
+    private static readonly int LightProbeSample = Shader.PropertyToID("_LightProbeSample");
 
     public event ParticleCollisionEventDelegate particleCollisionEvent;
 
@@ -154,6 +156,7 @@ public abstract class FluidParticleSystem {
         _particlePhysics[_particleSpawnIndex].velocity += Physics.gravity * (deltaTime * (1f-subT));
         _particlePhysics[_particleSpawnIndex].colliding = colliding;
         _particleSpawnIndex = (_particleSpawnIndex + 1) % _particles.Length;
+        lastEmittedPosition = interpolatedParticleInfo.position;
     }
 
     public void Update(float deltaTime) {
@@ -182,16 +185,24 @@ public abstract class FluidParticleSystem {
         //    lightProbeVolume = new GameObject("FlockingLightProbeVolume", typeof(LightProbeProxyVolume)).GetComponent<LightProbeProxyVolume>();
         //}
         _materialPropertyBlock.SetBuffer(Particle1, _particleBuffer);
+        lightProbeOutputColors = new[] { Color.white, Color.white };
+        lightProbeSampleDirections = new [] { Vector3.up, Vector3.down };
     }
 
     public void RenderHeight(CommandBuffer buffer) {
-        buffer.DrawProcedural(Matrix4x4.identity, _material, 1, MeshTopology.Triangles, 6, _particles.Length,
-            _materialPropertyBlock);
+        buffer.DrawProcedural(Matrix4x4.identity, _material, 1, MeshTopology.Triangles, 6, _particles.Length, _materialPropertyBlock);
     }
 
     public void RenderColor(CommandBuffer buffer) {
-        buffer.DrawProcedural(Matrix4x4.identity, _material, 0, MeshTopology.Triangles, 6, _particles.Length,
-            _materialPropertyBlock);
+        LightProbes.GetInterpolatedProbe(lastEmittedPosition, null, out SphericalHarmonicsL2 probe);
+        probe.Evaluate(lightProbeSampleDirections, lightProbeOutputColors);
+        var up = lightProbeOutputColors[0];
+        var down = lightProbeOutputColors[1];
+        Color maxColor = new Color(Mathf.Max(up.r, down.r), Mathf.Max(up.g, down.g), Mathf.Max(up.b, down.b), Mathf.Max(up.a, down.a));
+        Color perceptualColor = new Color(Mathf.Pow(maxColor.r, 1f/2.2f), Mathf.Pow(maxColor.g, 1f/2.2f), Mathf.Pow(maxColor.b, 1f/2.2f));
+        _materialPropertyBlock.SetColor(LightProbeSample, perceptualColor);
+        
+        buffer.DrawProcedural(Matrix4x4.identity, _material, 0, MeshTopology.Triangles, 6, _particles.Length, _materialPropertyBlock);
     }
 
     private void GenerateMeshData() {

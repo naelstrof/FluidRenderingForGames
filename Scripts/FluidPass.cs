@@ -50,7 +50,7 @@ public class FluidPass : ScriptableRenderPass {
         RenderingUtils.ReAllocateIfNeeded(ref m_FluidHeightBuffer, desc, name: "_FluidHeightBuffer");
         
         desc.depthBufferBits = (int)DepthBits.None;
-        desc.colorFormat = RenderTextureFormat.Default;
+        desc.colorFormat = RenderTextureFormat.DefaultHDR;
         desc.sRGB = true;
         RenderingUtils.ReAllocateIfNeeded(ref m_FluidColorBuffer, desc, name: outputColorName);
     }
