@@ -9,11 +9,11 @@
       }
     },
     "com.naelstrof.jigglephysics": {
-      "version": "https://github.com/naelstrof/UnityJigglePhysics.git#v9.0.1",
+      "version": "https://github.com/naelstrof/UnityJigglePhysics.git#v9.0.2",
       "depth": 0,
       "source": "git",
       "dependencies": {},
-      "hash": "dc6748eff81d5972f7a48c23951f09299550838f"
+      "hash": "0962e85adf1ebc541b2423a463ef0a91219fe5fd"
     },
     "com.naelstrof.skinnedmeshdecals": {
       "version": "https://github.com/naelstrof/SkinnedMeshDecals.git#v11.0.0",
