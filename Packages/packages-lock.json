@@ -32,12 +32,6 @@
       "dependencies": {},
       "hash": "4dbfd8f4373b1ca578078abfeca8adb88e0bc615"
     },
-    "com.naelstrof.ragdoll.creator": {
-      "version": "file:com.naelstrof.ragdoll.creator",
-      "depth": 0,
-      "source": "embedded",
-      "dependencies": {}
-    },
     "com.naelstrof.skinnedmeshdecals": {
       "version": "https://github.com/naelstrof/SkinnedMeshDecals.git#v11.0.0",
       "depth": 0,
