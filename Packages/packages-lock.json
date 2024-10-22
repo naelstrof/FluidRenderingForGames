@@ -1,5 +1,15 @@
 {
   "dependencies": {
+    "com.naelstrof-raliv.dynamic-penetration-for-games": {
+      "version": "https://github.com/naelstrof/DynamicPenetrationForGames.git#v3.0.7",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {
+        "com.naelstrof.splines": "2.0.5",
+        "com.naelstrof.jigglephysics": "10.0.1"
+      },
+      "hash": "8509b42388b73305e15531ca346df704e622ca0a"
+    },
     "com.naelstrof-raliv.fluid-rendering-for-games": {
       "version": "file:com.naelstrof-raliv.fluid-rendering-for-games",
       "depth": 0,
@@ -8,12 +18,25 @@
         "com.naelstrof.skinnedmeshdecals": "11.0.0"
       }
     },
-    "com.naelstrof.jigglephysics": {
-      "version": "https://github.com/naelstrof/UnityJigglePhysics.git#v9.0.2",
+    "com.naelstrof.extensions": {
+      "version": "https://github.com/naelstrof/com.naelstrof.extensions.git",
       "depth": 0,
       "source": "git",
       "dependencies": {},
-      "hash": "0962e85adf1ebc541b2423a463ef0a91219fe5fd"
+      "hash": "36cbdb2cf2ced30bcb0cce07ec2284986b199c0b"
+    },
+    "com.naelstrof.jigglephysics": {
+      "version": "https://github.com/naelstrof/UnityJigglePhysics.git#v10.0.1",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "4dbfd8f4373b1ca578078abfeca8adb88e0bc615"
+    },
+    "com.naelstrof.ragdoll.creator": {
+      "version": "file:com.naelstrof.ragdoll.creator",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
     },
     "com.naelstrof.skinnedmeshdecals": {
       "version": "https://github.com/naelstrof/SkinnedMeshDecals.git#v11.0.0",
@@ -21,6 +44,13 @@
       "source": "git",
       "dependencies": {},
       "hash": "04374893646d01abd5c693d8c632de6549ba6764"
+    },
+    "com.naelstrof.splines": {
+      "version": "https://github.com/naelstrof/com.naelstrof.splines.git",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "536755b5f26ae71d2abcb0605c0c67f3aece1972"
     },
     "com.unity.burst": {
       "version": "1.8.15",
