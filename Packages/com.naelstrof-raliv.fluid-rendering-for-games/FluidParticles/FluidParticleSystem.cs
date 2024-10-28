@@ -62,6 +62,7 @@ public abstract class FluidParticleSystem {
         var walk = particleIndex;
         do {
             _particles[walk].heightStrength = 0f;
+            _particles[walk].color = Color.clear;
             walk = (walk + 1) % _particlePhysics.Length;
         } while (!_particlePhysics[walk].colliding && walk!=_particleSpawnIndex);
     }

@@ -139,7 +139,7 @@ namespace FluidRenderingForGames {
             _velocityMultiplier = velocityMultiplier;
         }
 
-        public void setHeightStrengthMultiplier(float heightStrengthMultiplier) {
+        public void SetHeightStrengthMultiplier(float heightStrengthMultiplier) {
             _heightStrengthMultiplier = heightStrengthMultiplier;
         }
 

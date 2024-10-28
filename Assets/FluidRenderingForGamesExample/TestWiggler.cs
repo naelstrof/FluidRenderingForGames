@@ -26,7 +26,7 @@ public class TestWiggler : MonoBehaviour {
         var volume = volumeCurve.Evaluate(Mathf.Repeat(Time.timeSinceLevelLoad*1f, 1f));
         var stiffness = stiffnessCurve.Evaluate(Mathf.Repeat(Time.timeSinceLevelLoad*1f, 1f));
         GetComponentInChildren<FluidEmitter>().SetVelocityMultiplier(velocity);
-        GetComponentInChildren<FluidEmitter>().setHeightStrengthMultiplier(volume);
+        GetComponentInChildren<FluidEmitter>().SetHeightStrengthMultiplier(volume);
         transform.rotation = startRotation * Quaternion.Euler(0f, aimWigglePower * Mathf.PerlinNoise(Time.timeSinceLevelLoad * 0.8f, -Time.timeSinceLevelLoad * 1.11f), 0f);
         if (jiggleBlend) jiggleBlend.SetNormalizedBlend(Mathf.Clamp01(stiffness));
     }
