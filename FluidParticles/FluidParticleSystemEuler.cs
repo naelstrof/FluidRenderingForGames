@@ -14,9 +14,14 @@ namespace FluidRenderingForGames {
         
         protected override void UpdateParticles(float deltaTime) {
             for (var index = 0; index < _particles.Length; index++) {
-                if (_particles[index].heightStrength <= 0.01f) continue;
+                if (_particles[index].heightStrength <= 0.01f) {
+                    _particles[index].heightStrength = 0f;
+                    _particles[index].color = Color.clear;
+                    _particles[index].size = 0f;
+                    continue;
+                }
                 var positionStep = _particlePhysics[index].velocity * deltaTime;
-                if (_particlePhysics[index].colliding && _particles[index].heightStrength>0f) {
+                if (_particlePhysics[index].colliding) {
                     if (Physics.Raycast(_particles[index].position, positionStep, out var hit, positionStep.magnitude, _collisionLayerMask)) {
                         TriggerParticleCollisionEvent(new ParticleCollision() {
                             collider = hit.collider,

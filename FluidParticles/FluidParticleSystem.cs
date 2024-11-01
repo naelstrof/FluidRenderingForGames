@@ -63,6 +63,7 @@ public abstract class FluidParticleSystem {
         do {
             _particles[walk].heightStrength = 0f;
             _particles[walk].color = Color.clear;
+            _particles[walk].size = 0f;
             walk = (walk + 1) % _particlePhysics.Length;
         } while (!_particlePhysics[walk].colliding && walk!=_particleSpawnIndex);
     }
@@ -74,6 +75,14 @@ public abstract class FluidParticleSystem {
         _material = material;
         _fluidParticleSystemSettings = fluidParticleSystemSettings;
         _particles = new Particle[particleCountMax];
+        for (int i = 0; i < _particles.Length; i++) {
+            _particles[i] = new Particle() {
+                position = Vector3.zero,
+                size = 0f,
+                color = Color.clear,
+                heightStrength = 0f
+            };
+        }
         _particlePhysics = new ParticlePhysics[particleCountMax];
         Initialize();
     }
@@ -88,9 +97,9 @@ public abstract class FluidParticleSystem {
 
     Vector3 GenerateNoiseOctave(float frequency, float t) {
         var noise = new Vector3(
-            Mathf.PerlinNoise(t * frequency * -1.39f, t * frequency * 3.33f),
-            Mathf.PerlinNoise(t * frequency * 2.19f, t * frequency * -2.11f),
-            Mathf.PerlinNoise(t * frequency * 0.74f, t * frequency * 0.91f)
+            Mathf.PerlinNoise(t * frequency * -1.39f, t * frequency * 1.33f)*2f-1f,
+            Mathf.PerlinNoise(t * frequency * 1.19f, t * frequency * -1.11f)*2f-1f,
+            Mathf.PerlinNoise(t * frequency * 0.74f, t * frequency * 0.91f)*2f-1f
         );
         return noise;
     }
@@ -102,7 +111,6 @@ public abstract class FluidParticleSystem {
             noise += GenerateNoiseOctave(Mathf.Pow(_fluidParticleSystemSettings.noiseFrequency, i + 1), t) *
                      octaveStrength;
         }
-
         return noise;
     }
 
@@ -136,12 +144,12 @@ public abstract class FluidParticleSystem {
         bool colliding = false
     ) {
         var subTime = tickTime - deltaTime * (1f-subT);
-        var velocityNoise = Vector3.one * (1f - _fluidParticleSystemSettings.noiseStrength * 0.5f) +
-                            GenerateVelocityNoise(subTime) * _fluidParticleSystemSettings.noiseStrength;
+        var velocityNoise = Vector3.forward + GenerateVelocityNoise(subTime) * _fluidParticleSystemSettings.noiseStrength;
         var interpolatedParticleInfo =
             InterpolatedParticleInfo.Lerp(previousParticleInfo, currentParticleInfo, subM);
-        var particleVelocity = interpolatedParticleInfo.forward;
-        particleVelocity.Scale(velocityNoise);
+        var right = Vector3.Cross(interpolatedParticleInfo.forward, Vector3.up).normalized;
+        var up = Vector3.Cross(interpolatedParticleInfo.forward, right).normalized;
+        var particleVelocity = interpolatedParticleInfo.forward*velocityNoise.z+up*velocityNoise.y+right*velocityNoise.x;
         particleVelocity *= interpolatedParticleInfo.velocity;
         _particles[_particleSpawnIndex] = new Particle {
             position = interpolatedParticleInfo.position,
