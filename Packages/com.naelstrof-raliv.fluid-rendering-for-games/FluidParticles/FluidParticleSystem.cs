@@ -9,8 +9,6 @@ public abstract class FluidParticleSystem {
 
     protected int particleCountMax;
 
-    //[SerializeField] private LightProbeProxyVolume lightProbeVolume;
-
     public struct Particle {
         public Vector3 position;
         public float size;
@@ -31,18 +29,21 @@ public abstract class FluidParticleSystem {
     protected struct ParticlePhysics {
         public Vector3 lastPosition;
         public Vector3 velocity;
-        public bool Colliding;
+        public bool colliding;
     }
 
     protected Particle[] _particles;
     protected ParticlePhysics[] _particlePhysics;
+    protected int _particleSpawnIndex;
     private Material _material;
     private GraphicsBuffer _particleBuffer;
     private MaterialPropertyBlock _materialPropertyBlock;
-    private int _particleSpawnIndex;
     private float _strength;
     private FluidParticleSystemSettings _fluidParticleSystemSettings;
     protected LayerMask _collisionLayerMask;
+    private Color[] lightProbeOutputColors;
+    private Vector3[] lightProbeSampleDirections;
+    private Vector3 lastEmittedPosition;
 
     private GraphicsBuffer _meshTriangles;
     private GraphicsBuffer _meshNormals;
@@ -52,11 +53,19 @@ public abstract class FluidParticleSystem {
     private static readonly int ParticleUVs = Shader.PropertyToID("_ParticleUVs");
     private static readonly int ParticleCount = Shader.PropertyToID("_ParticleCount");
     private static readonly int Particle1 = Shader.PropertyToID("_Particle");
+    private static readonly int LightProbeSample = Shader.PropertyToID("_LightProbeSample");
 
     public event ParticleCollisionEventDelegate particleCollisionEvent;
 
-    protected void TriggerParticleCollisionEvent(ParticleCollision particleCollision) {
+    protected void TriggerParticleCollisionEvent(ParticleCollision particleCollision, int particleIndex) {
         particleCollisionEvent?.Invoke(particleCollision);
+        var walk = particleIndex;
+        do {
+            _particles[walk].heightStrength = 0f;
+            _particles[walk].color = Color.clear;
+            _particles[walk].size = 0f;
+            walk = (walk + 1) % _particlePhysics.Length;
+        } while (!_particlePhysics[walk].colliding && walk!=_particleSpawnIndex);
     }
 
     public FluidParticleSystem(Material material, FluidParticleSystemSettings fluidParticleSystemSettings,
@@ -66,6 +75,14 @@ public abstract class FluidParticleSystem {
         _material = material;
         _fluidParticleSystemSettings = fluidParticleSystemSettings;
         _particles = new Particle[particleCountMax];
+        for (int i = 0; i < _particles.Length; i++) {
+            _particles[i] = new Particle() {
+                position = Vector3.zero,
+                size = 0f,
+                color = Color.clear,
+                heightStrength = 0f
+            };
+        }
         _particlePhysics = new ParticlePhysics[particleCountMax];
         Initialize();
     }
@@ -80,9 +97,9 @@ public abstract class FluidParticleSystem {
 
     Vector3 GenerateNoiseOctave(float frequency, float t) {
         var noise = new Vector3(
-            Mathf.PerlinNoise(t * frequency * -1.39f, t * frequency * 3.33f),
-            Mathf.PerlinNoise(t * frequency * 2.19f, t * frequency * -2.11f),
-            Mathf.PerlinNoise(t * frequency * 0.74f, t * frequency * 0.91f)
+            Mathf.PerlinNoise(t * frequency * -1.39f, t * frequency * 1.33f)*2f-1f,
+            Mathf.PerlinNoise(t * frequency * 1.19f, t * frequency * -1.11f)*2f-1f,
+            Mathf.PerlinNoise(t * frequency * 0.74f, t * frequency * 0.91f)*2f-1f
         );
         return noise;
     }
@@ -94,51 +111,69 @@ public abstract class FluidParticleSystem {
             noise += GenerateNoiseOctave(Mathf.Pow(_fluidParticleSystemSettings.noiseFrequency, i + 1), t) *
                      octaveStrength;
         }
-
         return noise;
     }
 
+    public struct InterpolatedParticleInfo {
+        public Vector3 position;
+        public Vector3 forward;
+        public float velocity;
+        public float heightStrength;
+        public static InterpolatedParticleInfo Lerp(
+            InterpolatedParticleInfo a,
+            InterpolatedParticleInfo b,
+            float t) {
+            return new InterpolatedParticleInfo() {
+                position = Vector3.Lerp(a.position, b.position, t),
+                forward = Vector3.Lerp(a.forward, b.forward, t),
+                velocity = Mathf.Lerp(a.velocity, b.velocity, t),
+                heightStrength = Mathf.Lerp(a.heightStrength, b.heightStrength, t)
+            };
+        }
+    }
+
     public void SpawnParticle(
-        Vector3 position,
-        Vector3 previousPosition,
-        Vector3 forward,
-        Vector3 previousForward,
-        float velocity,
-        float previousVelocity,
+        InterpolatedParticleInfo currentParticleInfo,
+        InterpolatedParticleInfo previousParticleInfo,
         float size,
         Color color,
-        float heightStrength,
+        float deltaTime,
+        float tickTime,
+        float subM = 0f,
         float subT = 0f,
         bool colliding = false
     ) {
-        var subTime = Time.timeSinceLevelLoad - Time.deltaTime * subT;
-        var velocityNoise = Vector3.one * (1f - _fluidParticleSystemSettings.noiseStrength * 0.5f) +
-                            GenerateVelocityNoise(subTime) * _fluidParticleSystemSettings.noiseStrength;
-        var particleVelocity = Vector3.Lerp(forward, previousForward, subT);
-        particleVelocity.Scale(velocityNoise);
-        particleVelocity *= Mathf.Lerp(velocity, previousVelocity, subT);
+        var subTime = tickTime - deltaTime * (1f-subT);
+        var velocityNoise = Vector3.forward + GenerateVelocityNoise(subTime) * _fluidParticleSystemSettings.noiseStrength;
+        var interpolatedParticleInfo =
+            InterpolatedParticleInfo.Lerp(previousParticleInfo, currentParticleInfo, subM);
+        var right = Vector3.Cross(interpolatedParticleInfo.forward, Vector3.up).normalized;
+        var up = Vector3.Cross(interpolatedParticleInfo.forward, right).normalized;
+        var particleVelocity = interpolatedParticleInfo.forward*velocityNoise.z+up*velocityNoise.y+right*velocityNoise.x;
+        particleVelocity *= interpolatedParticleInfo.velocity;
         _particles[_particleSpawnIndex] = new Particle {
-            position = Vector3.Lerp(position, previousPosition, subT) - particleVelocity * Time.deltaTime,
+            position = interpolatedParticleInfo.position,
             size = size * (1f - velocityNoise.x * 0.5f),
             color = color,
-            heightStrength = heightStrength
+            heightStrength = interpolatedParticleInfo.heightStrength
         };
         _particlePhysics[_particleSpawnIndex] = new ParticlePhysics {
             velocity = particleVelocity,
         };
         _particles[_particleSpawnIndex].position +=
-            _particlePhysics[_particleSpawnIndex].velocity * (Time.deltaTime * subT);
-        _particlePhysics[_particleSpawnIndex].velocity += Physics.gravity * (Time.deltaTime * subT);
-        _particlePhysics[_particleSpawnIndex].Colliding = colliding;
+            _particlePhysics[_particleSpawnIndex].velocity * (deltaTime * (1f-subT));
+        _particlePhysics[_particleSpawnIndex].velocity += Physics.gravity * (deltaTime * (1f-subT));
+        _particlePhysics[_particleSpawnIndex].colliding = colliding;
         _particleSpawnIndex = (_particleSpawnIndex + 1) % _particles.Length;
+        lastEmittedPosition = interpolatedParticleInfo.position;
     }
 
-    public void FixedUpdate() {
-        UpdateParticles();
+    public void Update(float deltaTime) {
+        UpdateParticles(deltaTime);
         _particleBuffer.SetData(_particles);
     }
 
-    protected abstract void UpdateParticles();
+    protected abstract void UpdateParticles(float deltaTime);
 
     void Initialize() {
         // TODO: staticly initialize or separate out
@@ -159,16 +194,24 @@ public abstract class FluidParticleSystem {
         //    lightProbeVolume = new GameObject("FlockingLightProbeVolume", typeof(LightProbeProxyVolume)).GetComponent<LightProbeProxyVolume>();
         //}
         _materialPropertyBlock.SetBuffer(Particle1, _particleBuffer);
+        lightProbeOutputColors = new[] { Color.white, Color.white };
+        lightProbeSampleDirections = new [] { Vector3.up, Vector3.down };
     }
 
     public void RenderHeight(CommandBuffer buffer) {
-        buffer.DrawProcedural(Matrix4x4.identity, _material, 1, MeshTopology.Triangles, 6, _particles.Length,
-            _materialPropertyBlock);
+        buffer.DrawProcedural(Matrix4x4.identity, _material, 1, MeshTopology.Triangles, 6, _particles.Length, _materialPropertyBlock);
     }
 
     public void RenderColor(CommandBuffer buffer) {
-        buffer.DrawProcedural(Matrix4x4.identity, _material, 0, MeshTopology.Triangles, 6, _particles.Length,
-            _materialPropertyBlock);
+        LightProbes.GetInterpolatedProbe(lastEmittedPosition, null, out SphericalHarmonicsL2 probe);
+        probe.Evaluate(lightProbeSampleDirections, lightProbeOutputColors);
+        var up = lightProbeOutputColors[0];
+        var down = lightProbeOutputColors[1];
+        Color maxColor = new Color(Mathf.Max(up.r, down.r), Mathf.Max(up.g, down.g), Mathf.Max(up.b, down.b), Mathf.Max(up.a, down.a));
+        Color perceptualColor = new Color(Mathf.Pow(maxColor.r, 1f/2.2f), Mathf.Pow(maxColor.g, 1f/2.2f), Mathf.Pow(maxColor.b, 1f/2.2f));
+        _materialPropertyBlock.SetColor(LightProbeSample, perceptualColor);
+        
+        buffer.DrawProcedural(Matrix4x4.identity, _material, 0, MeshTopology.Triangles, 6, _particles.Length, _materialPropertyBlock);
     }
 
     private void GenerateMeshData() {

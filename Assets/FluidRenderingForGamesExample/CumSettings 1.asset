@@ -10,16 +10,16 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 51709a72c4826104e91f7ee5397b73f2, type: 3}
-  m_Name: CumSettings
+  m_Name: CumSettings 1
   m_EditorClassIdentifier: 
-  <baseVelocity>k__BackingField: 3
-  <particleBaseSize>k__BackingField: 0.1
-  <color>k__BackingField: {r: 0, g: 0.46707344, b: 1, a: 0.5}
-  <heightStrengthBase>k__BackingField: 0.03
-  <noiseStrength>k__BackingField: 0.2
-  <noiseFrequency>k__BackingField: 3
-  <noiseOctaves>k__BackingField: 3
-  <splatSize>k__BackingField: 1
+  <baseVelocity>k__BackingField: 3.5
+  <particleBaseSize>k__BackingField: 0.11
+  <color>k__BackingField: {r: 0.764151, g: 0.764151, b: 0.764151, a: 0.5019608}
+  <heightStrengthBase>k__BackingField: 0.05
+  <noiseStrength>k__BackingField: 0.9
+  <noiseFrequency>k__BackingField: 2.5
+  <noiseOctaves>k__BackingField: 2
+  <splatSize>k__BackingField: 2
   <particleMaterial>k__BackingField: {fileID: 2100000, guid: 1ffacd69c2e9ceb4d9a1f7aafcb3a486,
     type: 2}
   <decalableHitMask>k__BackingField:

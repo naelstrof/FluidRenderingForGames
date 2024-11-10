@@ -13,7 +13,6 @@ Shader "FluidSplatTest"
 		_BumpPower("BumpPower", Range( 0 , 20)) = 1
 		_EdgeRange("EdgeRange", Range( 0 , 0.5)) = 0.1
 		_EdgeBegin("EdgeBegin", Range( 0 , 0.5)) = 0.1
-		_Opacity("Opacity", Range( 0 , 1)) = 0.7
 		_ShinePower("ShinePower", Range( 0 , 2)) = 1
 		_Tint("Tint", Color) = (0,0,0,0)
 		[HideInInspector] _texcoord( "", 2D ) = "white" {}
@@ -341,7 +340,6 @@ Shader "FluidSplatTest"
 			float _ShinePower;
 			float _EdgeBegin;
 			float _EdgeRange;
-			float _Opacity;
 			#ifdef ASE_TRANSMISSION
 				float _TransmissionShadow;
 			#endif
@@ -612,46 +610,46 @@ Shader "FluidSplatTest"
 				WorldViewDirection = SafeNormalize( WorldViewDirection );
 
 				float2 uv_MainTex = IN.ase_texcoord8.xy * _MainTex_ST.xy + _MainTex_ST.zw;
-				float2 texCoord79_g19 = IN.ase_texcoord8.zw * float2( 1,1 ) + float2( 0,0 );
-				float4 tex2DNode78_g19 = tex2D( _DecalColorMap, texCoord79_g19 );
-				float4 color88_g19 = IsGammaSpace() ? float4(1,1,1,1) : float4(1,1,1,1);
+				float2 texCoord79_g23 = IN.ase_texcoord8.zw * float2( 1,1 ) + float2( 0,0 );
+				float4 tex2DNode78_g23 = tex2D( _DecalColorMap, texCoord79_g23 );
+				float4 color88_g23 = IsGammaSpace() ? float4(1,1,1,1) : float4(1,1,1,1);
 				float2 _Vector0 = float2(2,0);
-				float2 texCoord1_g19 = IN.ase_texcoord8.zw * float2( 1,1 ) + float2( 0,0 );
-				float temp_output_31_0_g19 = ( 1.0 / _FluidHeight_TexelSize.z );
-				float2 appendResult36_g19 = (float2(( texCoord1_g19.x + temp_output_31_0_g19 ) , texCoord1_g19.y));
-				float simplePerlin2D64_g19 = snoise( texCoord1_g19*40.0 );
-				simplePerlin2D64_g19 = simplePerlin2D64_g19*0.5 + 0.5;
-				float temp_output_71_0_g19 = ( -simplePerlin2D64_g19 * _EdgeNoise );
-				float2 appendResult37_g19 = (float2(( texCoord1_g19.x - temp_output_31_0_g19 ) , texCoord1_g19.y));
-				float3 appendResult48_g19 = (float3(_Vector0.x , _Vector0.y , ( ( ( ( tex2D( _FluidHeight, appendResult36_g19 ).r + temp_output_71_0_g19 ) * 5.0 ) - ( ( tex2D( _FluidHeight, appendResult37_g19 ).r + temp_output_71_0_g19 ) * 5.0 ) ) * _BumpPower )));
-				float3 normalizeResult50_g19 = normalize( appendResult48_g19 );
-				float2 appendResult40_g19 = (float2(texCoord1_g19.x , ( texCoord1_g19.y + temp_output_31_0_g19 )));
-				float2 appendResult41_g19 = (float2(texCoord1_g19.x , ( texCoord1_g19.y - temp_output_31_0_g19 )));
-				float3 appendResult49_g19 = (float3(_Vector0.y , _Vector0.x , ( ( ( ( tex2D( _FluidHeight, appendResult40_g19 ).r + temp_output_71_0_g19 ) * 5.0 ) - ( ( tex2D( _FluidHeight, appendResult41_g19 ).r + temp_output_71_0_g19 ) * 5.0 ) ) * _BumpPower )));
-				float3 normalizeResult51_g19 = normalize( appendResult49_g19 );
-				float3 temp_output_52_0_g19 = cross( normalizeResult50_g19 , normalizeResult51_g19 );
+				float2 texCoord1_g23 = IN.ase_texcoord8.zw * float2( 1,1 ) + float2( 0,0 );
+				float temp_output_31_0_g23 = ( 1.0 / _FluidHeight_TexelSize.z );
+				float2 appendResult36_g23 = (float2(( texCoord1_g23.x + temp_output_31_0_g23 ) , texCoord1_g23.y));
+				float simplePerlin2D64_g23 = snoise( texCoord1_g23*40.0 );
+				simplePerlin2D64_g23 = simplePerlin2D64_g23*0.5 + 0.5;
+				float temp_output_71_0_g23 = ( -simplePerlin2D64_g23 * _EdgeNoise );
+				float2 appendResult37_g23 = (float2(( texCoord1_g23.x - temp_output_31_0_g23 ) , texCoord1_g23.y));
+				float3 appendResult48_g23 = (float3(_Vector0.x , _Vector0.y , ( ( ( ( tex2D( _FluidHeight, appendResult36_g23 ).r + temp_output_71_0_g23 ) * 5.0 ) - ( ( tex2D( _FluidHeight, appendResult37_g23 ).r + temp_output_71_0_g23 ) * 5.0 ) ) * _BumpPower )));
+				float3 normalizeResult50_g23 = normalize( appendResult48_g23 );
+				float2 appendResult40_g23 = (float2(texCoord1_g23.x , ( texCoord1_g23.y + temp_output_31_0_g23 )));
+				float2 appendResult41_g23 = (float2(texCoord1_g23.x , ( texCoord1_g23.y - temp_output_31_0_g23 )));
+				float3 appendResult49_g23 = (float3(_Vector0.y , _Vector0.x , ( ( ( ( tex2D( _FluidHeight, appendResult40_g23 ).r + temp_output_71_0_g23 ) * 5.0 ) - ( ( tex2D( _FluidHeight, appendResult41_g23 ).r + temp_output_71_0_g23 ) * 5.0 ) ) * _BumpPower )));
+				float3 normalizeResult51_g23 = normalize( appendResult49_g23 );
+				float3 temp_output_52_0_g23 = cross( normalizeResult50_g23 , normalizeResult51_g23 );
 				float3 tanToWorld0 = float3( WorldTangent.x, WorldBiTangent.x, WorldNormal.x );
 				float3 tanToWorld1 = float3( WorldTangent.y, WorldBiTangent.y, WorldNormal.y );
 				float3 tanToWorld2 = float3( WorldTangent.z, WorldBiTangent.z, WorldNormal.z );
-				float3 tanNormal26_g19 = temp_output_52_0_g19;
-				float3 worldNormal26_g19 = float3(dot(tanToWorld0,tanNormal26_g19), dot(tanToWorld1,tanNormal26_g19), dot(tanToWorld2,tanNormal26_g19));
+				float3 tanNormal26_g23 = temp_output_52_0_g23;
+				float3 worldNormal26_g23 = float3(dot(tanToWorld0,tanNormal26_g23), dot(tanToWorld1,tanNormal26_g23), dot(tanToWorld2,tanNormal26_g23));
 				float2 _Vector1 = float2(0.5,0.5);
-				float4 tex2DNode21_g19 = tex2D( _FluidMatcap, ( ( (mul( unity_WorldToCamera, float4( worldNormal26_g19 , 0.0 ) ).xyz).xy * _Vector1 ) + _Vector1 ) );
-				float temp_output_57_0_g19 = ( ( tex2D( _FluidHeight, texCoord1_g19 ).r + temp_output_71_0_g19 ) * 5.0 );
-				float smoothstepResult15_g19 = smoothstep( _EdgeBegin , ( _EdgeBegin + _EdgeRange ) , temp_output_57_0_g19);
-				float dotResult91_g19 = dot( temp_output_52_0_g19 , float3(0,0,1) );
-				float saferPower95_g19 = abs( dotResult91_g19 );
-				float smoothstepResult98_g19 = smoothstep( 0.0 , 0.2 , temp_output_57_0_g19);
-				float lerpResult73_g19 = lerp( ( smoothstepResult15_g19 * (1.0 + (( pow( saferPower95_g19 , 3.0 ) * smoothstepResult98_g19 ) - 0.0) * (0.5 - 1.0) / (1.0 - 0.0)) ) , 1.0 , tex2DNode21_g19.r);
-				float temp_output_58_5 = ( smoothstepResult15_g19 * lerpResult73_g19 * _Opacity * tex2DNode78_g19.a );
-				float4 lerpResult14 = lerp( ( _Tint * tex2D( _MainTex, uv_MainTex ) ) , ( tex2DNode78_g19 + ( color88_g19 * tex2DNode21_g19.r * _ShinePower ) ) , temp_output_58_5);
+				float4 tex2DNode21_g23 = tex2D( _FluidMatcap, ( ( (mul( unity_WorldToCamera, float4( worldNormal26_g23 , 0.0 ) ).xyz).xy * _Vector1 ) + _Vector1 ) );
+				float temp_output_57_0_g23 = ( ( tex2D( _FluidHeight, texCoord1_g23 ).r + temp_output_71_0_g23 ) * 5.0 );
+				float smoothstepResult15_g23 = smoothstep( _EdgeBegin , ( _EdgeBegin + _EdgeRange ) , temp_output_57_0_g23);
+				float dotResult91_g23 = dot( temp_output_52_0_g23 , float3(0,0,1) );
+				float saferPower95_g23 = abs( dotResult91_g23 );
+				float smoothstepResult98_g23 = smoothstep( 0.0 , 0.2 , temp_output_57_0_g23);
+				float lerpResult73_g23 = lerp( ( smoothstepResult15_g23 * (1.0 + (( pow( saferPower95_g23 , 3.0 ) * smoothstepResult98_g23 ) - 0.0) * (0.5 - 1.0) / (1.0 - 0.0)) ) , 1.0 , tex2DNode21_g23.r);
+				float temp_output_62_5 = ( smoothstepResult15_g23 * lerpResult73_g23 * tex2DNode78_g23.a );
+				float3 lerpResult14 = lerp( (( _Tint * tex2D( _MainTex, uv_MainTex ) )).rgb , (( tex2DNode78_g23 + ( color88_g23 * tex2DNode21_g23.r * _ShinePower ) )).rgb , temp_output_62_5);
 				
-				float3 lerpResult17 = lerp( float3(0,0,1) , temp_output_52_0_g19 , temp_output_58_5);
+				float3 lerpResult17 = lerp( float3(0,0,1) , temp_output_52_0_g23 , temp_output_62_5);
 				
-				float lerpResult19 = lerp( 0.0 , 0.0 , temp_output_58_5);
+				float lerpResult19 = lerp( 0.0 , 0.0 , temp_output_62_5);
 				
 
-				float3 BaseColor = lerpResult14.rgb;
+				float3 BaseColor = lerpResult14;
 				float3 Normal = lerpResult17;
 				float3 Emission = 0;
 				float3 Specular = 0.5;
@@ -1003,7 +1001,6 @@ Shader "FluidSplatTest"
 			float _ShinePower;
 			float _EdgeBegin;
 			float _EdgeRange;
-			float _Opacity;
 			#ifdef ASE_TRANSMISSION
 				float _TransmissionShadow;
 			#endif
@@ -1341,7 +1338,6 @@ Shader "FluidSplatTest"
 			float _ShinePower;
 			float _EdgeBegin;
 			float _EdgeRange;
-			float _Opacity;
 			#ifdef ASE_TRANSMISSION
 				float _TransmissionShadow;
 			#endif
@@ -1638,7 +1634,6 @@ Shader "FluidSplatTest"
 			float _ShinePower;
 			float _EdgeBegin;
 			float _EdgeRange;
-			float _Opacity;
 			#ifdef ASE_TRANSMISSION
 				float _TransmissionShadow;
 			#endif
@@ -1878,45 +1873,45 @@ Shader "FluidSplatTest"
 				#endif
 
 				float2 uv_MainTex = IN.ase_texcoord4.xy * _MainTex_ST.xy + _MainTex_ST.zw;
-				float2 texCoord79_g19 = IN.ase_texcoord4.zw * float2( 1,1 ) + float2( 0,0 );
-				float4 tex2DNode78_g19 = tex2D( _DecalColorMap, texCoord79_g19 );
-				float4 color88_g19 = IsGammaSpace() ? float4(1,1,1,1) : float4(1,1,1,1);
+				float2 texCoord79_g23 = IN.ase_texcoord4.zw * float2( 1,1 ) + float2( 0,0 );
+				float4 tex2DNode78_g23 = tex2D( _DecalColorMap, texCoord79_g23 );
+				float4 color88_g23 = IsGammaSpace() ? float4(1,1,1,1) : float4(1,1,1,1);
 				float2 _Vector0 = float2(2,0);
-				float2 texCoord1_g19 = IN.ase_texcoord4.zw * float2( 1,1 ) + float2( 0,0 );
-				float temp_output_31_0_g19 = ( 1.0 / _FluidHeight_TexelSize.z );
-				float2 appendResult36_g19 = (float2(( texCoord1_g19.x + temp_output_31_0_g19 ) , texCoord1_g19.y));
-				float simplePerlin2D64_g19 = snoise( texCoord1_g19*40.0 );
-				simplePerlin2D64_g19 = simplePerlin2D64_g19*0.5 + 0.5;
-				float temp_output_71_0_g19 = ( -simplePerlin2D64_g19 * _EdgeNoise );
-				float2 appendResult37_g19 = (float2(( texCoord1_g19.x - temp_output_31_0_g19 ) , texCoord1_g19.y));
-				float3 appendResult48_g19 = (float3(_Vector0.x , _Vector0.y , ( ( ( ( tex2D( _FluidHeight, appendResult36_g19 ).r + temp_output_71_0_g19 ) * 5.0 ) - ( ( tex2D( _FluidHeight, appendResult37_g19 ).r + temp_output_71_0_g19 ) * 5.0 ) ) * _BumpPower )));
-				float3 normalizeResult50_g19 = normalize( appendResult48_g19 );
-				float2 appendResult40_g19 = (float2(texCoord1_g19.x , ( texCoord1_g19.y + temp_output_31_0_g19 )));
-				float2 appendResult41_g19 = (float2(texCoord1_g19.x , ( texCoord1_g19.y - temp_output_31_0_g19 )));
-				float3 appendResult49_g19 = (float3(_Vector0.y , _Vector0.x , ( ( ( ( tex2D( _FluidHeight, appendResult40_g19 ).r + temp_output_71_0_g19 ) * 5.0 ) - ( ( tex2D( _FluidHeight, appendResult41_g19 ).r + temp_output_71_0_g19 ) * 5.0 ) ) * _BumpPower )));
-				float3 normalizeResult51_g19 = normalize( appendResult49_g19 );
-				float3 temp_output_52_0_g19 = cross( normalizeResult50_g19 , normalizeResult51_g19 );
+				float2 texCoord1_g23 = IN.ase_texcoord4.zw * float2( 1,1 ) + float2( 0,0 );
+				float temp_output_31_0_g23 = ( 1.0 / _FluidHeight_TexelSize.z );
+				float2 appendResult36_g23 = (float2(( texCoord1_g23.x + temp_output_31_0_g23 ) , texCoord1_g23.y));
+				float simplePerlin2D64_g23 = snoise( texCoord1_g23*40.0 );
+				simplePerlin2D64_g23 = simplePerlin2D64_g23*0.5 + 0.5;
+				float temp_output_71_0_g23 = ( -simplePerlin2D64_g23 * _EdgeNoise );
+				float2 appendResult37_g23 = (float2(( texCoord1_g23.x - temp_output_31_0_g23 ) , texCoord1_g23.y));
+				float3 appendResult48_g23 = (float3(_Vector0.x , _Vector0.y , ( ( ( ( tex2D( _FluidHeight, appendResult36_g23 ).r + temp_output_71_0_g23 ) * 5.0 ) - ( ( tex2D( _FluidHeight, appendResult37_g23 ).r + temp_output_71_0_g23 ) * 5.0 ) ) * _BumpPower )));
+				float3 normalizeResult50_g23 = normalize( appendResult48_g23 );
+				float2 appendResult40_g23 = (float2(texCoord1_g23.x , ( texCoord1_g23.y + temp_output_31_0_g23 )));
+				float2 appendResult41_g23 = (float2(texCoord1_g23.x , ( texCoord1_g23.y - temp_output_31_0_g23 )));
+				float3 appendResult49_g23 = (float3(_Vector0.y , _Vector0.x , ( ( ( ( tex2D( _FluidHeight, appendResult40_g23 ).r + temp_output_71_0_g23 ) * 5.0 ) - ( ( tex2D( _FluidHeight, appendResult41_g23 ).r + temp_output_71_0_g23 ) * 5.0 ) ) * _BumpPower )));
+				float3 normalizeResult51_g23 = normalize( appendResult49_g23 );
+				float3 temp_output_52_0_g23 = cross( normalizeResult50_g23 , normalizeResult51_g23 );
 				float3 ase_worldTangent = IN.ase_texcoord5.xyz;
 				float3 ase_worldNormal = IN.ase_texcoord6.xyz;
 				float3 ase_worldBitangent = IN.ase_texcoord7.xyz;
 				float3 tanToWorld0 = float3( ase_worldTangent.x, ase_worldBitangent.x, ase_worldNormal.x );
 				float3 tanToWorld1 = float3( ase_worldTangent.y, ase_worldBitangent.y, ase_worldNormal.y );
 				float3 tanToWorld2 = float3( ase_worldTangent.z, ase_worldBitangent.z, ase_worldNormal.z );
-				float3 tanNormal26_g19 = temp_output_52_0_g19;
-				float3 worldNormal26_g19 = float3(dot(tanToWorld0,tanNormal26_g19), dot(tanToWorld1,tanNormal26_g19), dot(tanToWorld2,tanNormal26_g19));
+				float3 tanNormal26_g23 = temp_output_52_0_g23;
+				float3 worldNormal26_g23 = float3(dot(tanToWorld0,tanNormal26_g23), dot(tanToWorld1,tanNormal26_g23), dot(tanToWorld2,tanNormal26_g23));
 				float2 _Vector1 = float2(0.5,0.5);
-				float4 tex2DNode21_g19 = tex2D( _FluidMatcap, ( ( (mul( unity_WorldToCamera, float4( worldNormal26_g19 , 0.0 ) ).xyz).xy * _Vector1 ) + _Vector1 ) );
-				float temp_output_57_0_g19 = ( ( tex2D( _FluidHeight, texCoord1_g19 ).r + temp_output_71_0_g19 ) * 5.0 );
-				float smoothstepResult15_g19 = smoothstep( _EdgeBegin , ( _EdgeBegin + _EdgeRange ) , temp_output_57_0_g19);
-				float dotResult91_g19 = dot( temp_output_52_0_g19 , float3(0,0,1) );
-				float saferPower95_g19 = abs( dotResult91_g19 );
-				float smoothstepResult98_g19 = smoothstep( 0.0 , 0.2 , temp_output_57_0_g19);
-				float lerpResult73_g19 = lerp( ( smoothstepResult15_g19 * (1.0 + (( pow( saferPower95_g19 , 3.0 ) * smoothstepResult98_g19 ) - 0.0) * (0.5 - 1.0) / (1.0 - 0.0)) ) , 1.0 , tex2DNode21_g19.r);
-				float temp_output_58_5 = ( smoothstepResult15_g19 * lerpResult73_g19 * _Opacity * tex2DNode78_g19.a );
-				float4 lerpResult14 = lerp( ( _Tint * tex2D( _MainTex, uv_MainTex ) ) , ( tex2DNode78_g19 + ( color88_g19 * tex2DNode21_g19.r * _ShinePower ) ) , temp_output_58_5);
+				float4 tex2DNode21_g23 = tex2D( _FluidMatcap, ( ( (mul( unity_WorldToCamera, float4( worldNormal26_g23 , 0.0 ) ).xyz).xy * _Vector1 ) + _Vector1 ) );
+				float temp_output_57_0_g23 = ( ( tex2D( _FluidHeight, texCoord1_g23 ).r + temp_output_71_0_g23 ) * 5.0 );
+				float smoothstepResult15_g23 = smoothstep( _EdgeBegin , ( _EdgeBegin + _EdgeRange ) , temp_output_57_0_g23);
+				float dotResult91_g23 = dot( temp_output_52_0_g23 , float3(0,0,1) );
+				float saferPower95_g23 = abs( dotResult91_g23 );
+				float smoothstepResult98_g23 = smoothstep( 0.0 , 0.2 , temp_output_57_0_g23);
+				float lerpResult73_g23 = lerp( ( smoothstepResult15_g23 * (1.0 + (( pow( saferPower95_g23 , 3.0 ) * smoothstepResult98_g23 ) - 0.0) * (0.5 - 1.0) / (1.0 - 0.0)) ) , 1.0 , tex2DNode21_g23.r);
+				float temp_output_62_5 = ( smoothstepResult15_g23 * lerpResult73_g23 * tex2DNode78_g23.a );
+				float3 lerpResult14 = lerp( (( _Tint * tex2D( _MainTex, uv_MainTex ) )).rgb , (( tex2DNode78_g23 + ( color88_g23 * tex2DNode21_g23.r * _ShinePower ) )).rgb , temp_output_62_5);
 				
 
-				float3 BaseColor = lerpResult14.rgb;
+				float3 BaseColor = lerpResult14;
 				float3 Emission = 0;
 				float Alpha = 1;
 				float AlphaClipThreshold = 0.5;
@@ -2027,7 +2022,6 @@ Shader "FluidSplatTest"
 			float _ShinePower;
 			float _EdgeBegin;
 			float _EdgeRange;
-			float _Opacity;
 			#ifdef ASE_TRANSMISSION
 				float _TransmissionShadow;
 			#endif
@@ -2253,45 +2247,45 @@ Shader "FluidSplatTest"
 				#endif
 
 				float2 uv_MainTex = IN.ase_texcoord2.xy * _MainTex_ST.xy + _MainTex_ST.zw;
-				float2 texCoord79_g19 = IN.ase_texcoord2.zw * float2( 1,1 ) + float2( 0,0 );
-				float4 tex2DNode78_g19 = tex2D( _DecalColorMap, texCoord79_g19 );
-				float4 color88_g19 = IsGammaSpace() ? float4(1,1,1,1) : float4(1,1,1,1);
+				float2 texCoord79_g23 = IN.ase_texcoord2.zw * float2( 1,1 ) + float2( 0,0 );
+				float4 tex2DNode78_g23 = tex2D( _DecalColorMap, texCoord79_g23 );
+				float4 color88_g23 = IsGammaSpace() ? float4(1,1,1,1) : float4(1,1,1,1);
 				float2 _Vector0 = float2(2,0);
-				float2 texCoord1_g19 = IN.ase_texcoord2.zw * float2( 1,1 ) + float2( 0,0 );
-				float temp_output_31_0_g19 = ( 1.0 / _FluidHeight_TexelSize.z );
-				float2 appendResult36_g19 = (float2(( texCoord1_g19.x + temp_output_31_0_g19 ) , texCoord1_g19.y));
-				float simplePerlin2D64_g19 = snoise( texCoord1_g19*40.0 );
-				simplePerlin2D64_g19 = simplePerlin2D64_g19*0.5 + 0.5;
-				float temp_output_71_0_g19 = ( -simplePerlin2D64_g19 * _EdgeNoise );
-				float2 appendResult37_g19 = (float2(( texCoord1_g19.x - temp_output_31_0_g19 ) , texCoord1_g19.y));
-				float3 appendResult48_g19 = (float3(_Vector0.x , _Vector0.y , ( ( ( ( tex2D( _FluidHeight, appendResult36_g19 ).r + temp_output_71_0_g19 ) * 5.0 ) - ( ( tex2D( _FluidHeight, appendResult37_g19 ).r + temp_output_71_0_g19 ) * 5.0 ) ) * _BumpPower )));
-				float3 normalizeResult50_g19 = normalize( appendResult48_g19 );
-				float2 appendResult40_g19 = (float2(texCoord1_g19.x , ( texCoord1_g19.y + temp_output_31_0_g19 )));
-				float2 appendResult41_g19 = (float2(texCoord1_g19.x , ( texCoord1_g19.y - temp_output_31_0_g19 )));
-				float3 appendResult49_g19 = (float3(_Vector0.y , _Vector0.x , ( ( ( ( tex2D( _FluidHeight, appendResult40_g19 ).r + temp_output_71_0_g19 ) * 5.0 ) - ( ( tex2D( _FluidHeight, appendResult41_g19 ).r + temp_output_71_0_g19 ) * 5.0 ) ) * _BumpPower )));
-				float3 normalizeResult51_g19 = normalize( appendResult49_g19 );
-				float3 temp_output_52_0_g19 = cross( normalizeResult50_g19 , normalizeResult51_g19 );
+				float2 texCoord1_g23 = IN.ase_texcoord2.zw * float2( 1,1 ) + float2( 0,0 );
+				float temp_output_31_0_g23 = ( 1.0 / _FluidHeight_TexelSize.z );
+				float2 appendResult36_g23 = (float2(( texCoord1_g23.x + temp_output_31_0_g23 ) , texCoord1_g23.y));
+				float simplePerlin2D64_g23 = snoise( texCoord1_g23*40.0 );
+				simplePerlin2D64_g23 = simplePerlin2D64_g23*0.5 + 0.5;
+				float temp_output_71_0_g23 = ( -simplePerlin2D64_g23 * _EdgeNoise );
+				float2 appendResult37_g23 = (float2(( texCoord1_g23.x - temp_output_31_0_g23 ) , texCoord1_g23.y));
+				float3 appendResult48_g23 = (float3(_Vector0.x , _Vector0.y , ( ( ( ( tex2D( _FluidHeight, appendResult36_g23 ).r + temp_output_71_0_g23 ) * 5.0 ) - ( ( tex2D( _FluidHeight, appendResult37_g23 ).r + temp_output_71_0_g23 ) * 5.0 ) ) * _BumpPower )));
+				float3 normalizeResult50_g23 = normalize( appendResult48_g23 );
+				float2 appendResult40_g23 = (float2(texCoord1_g23.x , ( texCoord1_g23.y + temp_output_31_0_g23 )));
+				float2 appendResult41_g23 = (float2(texCoord1_g23.x , ( texCoord1_g23.y - temp_output_31_0_g23 )));
+				float3 appendResult49_g23 = (float3(_Vector0.y , _Vector0.x , ( ( ( ( tex2D( _FluidHeight, appendResult40_g23 ).r + temp_output_71_0_g23 ) * 5.0 ) - ( ( tex2D( _FluidHeight, appendResult41_g23 ).r + temp_output_71_0_g23 ) * 5.0 ) ) * _BumpPower )));
+				float3 normalizeResult51_g23 = normalize( appendResult49_g23 );
+				float3 temp_output_52_0_g23 = cross( normalizeResult50_g23 , normalizeResult51_g23 );
 				float3 ase_worldTangent = IN.ase_texcoord3.xyz;
 				float3 ase_worldNormal = IN.ase_texcoord4.xyz;
 				float3 ase_worldBitangent = IN.ase_texcoord5.xyz;
 				float3 tanToWorld0 = float3( ase_worldTangent.x, ase_worldBitangent.x, ase_worldNormal.x );
 				float3 tanToWorld1 = float3( ase_worldTangent.y, ase_worldBitangent.y, ase_worldNormal.y );
 				float3 tanToWorld2 = float3( ase_worldTangent.z, ase_worldBitangent.z, ase_worldNormal.z );
-				float3 tanNormal26_g19 = temp_output_52_0_g19;
-				float3 worldNormal26_g19 = float3(dot(tanToWorld0,tanNormal26_g19), dot(tanToWorld1,tanNormal26_g19), dot(tanToWorld2,tanNormal26_g19));
+				float3 tanNormal26_g23 = temp_output_52_0_g23;
+				float3 worldNormal26_g23 = float3(dot(tanToWorld0,tanNormal26_g23), dot(tanToWorld1,tanNormal26_g23), dot(tanToWorld2,tanNormal26_g23));
 				float2 _Vector1 = float2(0.5,0.5);
-				float4 tex2DNode21_g19 = tex2D( _FluidMatcap, ( ( (mul( unity_WorldToCamera, float4( worldNormal26_g19 , 0.0 ) ).xyz).xy * _Vector1 ) + _Vector1 ) );
-				float temp_output_57_0_g19 = ( ( tex2D( _FluidHeight, texCoord1_g19 ).r + temp_output_71_0_g19 ) * 5.0 );
-				float smoothstepResult15_g19 = smoothstep( _EdgeBegin , ( _EdgeBegin + _EdgeRange ) , temp_output_57_0_g19);
-				float dotResult91_g19 = dot( temp_output_52_0_g19 , float3(0,0,1) );
-				float saferPower95_g19 = abs( dotResult91_g19 );
-				float smoothstepResult98_g19 = smoothstep( 0.0 , 0.2 , temp_output_57_0_g19);
-				float lerpResult73_g19 = lerp( ( smoothstepResult15_g19 * (1.0 + (( pow( saferPower95_g19 , 3.0 ) * smoothstepResult98_g19 ) - 0.0) * (0.5 - 1.0) / (1.0 - 0.0)) ) , 1.0 , tex2DNode21_g19.r);
-				float temp_output_58_5 = ( smoothstepResult15_g19 * lerpResult73_g19 * _Opacity * tex2DNode78_g19.a );
-				float4 lerpResult14 = lerp( ( _Tint * tex2D( _MainTex, uv_MainTex ) ) , ( tex2DNode78_g19 + ( color88_g19 * tex2DNode21_g19.r * _ShinePower ) ) , temp_output_58_5);
+				float4 tex2DNode21_g23 = tex2D( _FluidMatcap, ( ( (mul( unity_WorldToCamera, float4( worldNormal26_g23 , 0.0 ) ).xyz).xy * _Vector1 ) + _Vector1 ) );
+				float temp_output_57_0_g23 = ( ( tex2D( _FluidHeight, texCoord1_g23 ).r + temp_output_71_0_g23 ) * 5.0 );
+				float smoothstepResult15_g23 = smoothstep( _EdgeBegin , ( _EdgeBegin + _EdgeRange ) , temp_output_57_0_g23);
+				float dotResult91_g23 = dot( temp_output_52_0_g23 , float3(0,0,1) );
+				float saferPower95_g23 = abs( dotResult91_g23 );
+				float smoothstepResult98_g23 = smoothstep( 0.0 , 0.2 , temp_output_57_0_g23);
+				float lerpResult73_g23 = lerp( ( smoothstepResult15_g23 * (1.0 + (( pow( saferPower95_g23 , 3.0 ) * smoothstepResult98_g23 ) - 0.0) * (0.5 - 1.0) / (1.0 - 0.0)) ) , 1.0 , tex2DNode21_g23.r);
+				float temp_output_62_5 = ( smoothstepResult15_g23 * lerpResult73_g23 * tex2DNode78_g23.a );
+				float3 lerpResult14 = lerp( (( _Tint * tex2D( _MainTex, uv_MainTex ) )).rgb , (( tex2DNode78_g23 + ( color88_g23 * tex2DNode21_g23.r * _ShinePower ) )).rgb , temp_output_62_5);
 				
 
-				float3 BaseColor = lerpResult14.rgb;
+				float3 BaseColor = lerpResult14;
 				float Alpha = 1;
 				float AlphaClipThreshold = 0.5;
 
@@ -2432,7 +2426,6 @@ Shader "FluidSplatTest"
 			float _ShinePower;
 			float _EdgeBegin;
 			float _EdgeRange;
-			float _Opacity;
 			#ifdef ASE_TRANSMISSION
 				float _TransmissionShadow;
 			#endif
@@ -2669,38 +2662,38 @@ Shader "FluidSplatTest"
 				#endif
 
 				float2 _Vector0 = float2(2,0);
-				float2 texCoord1_g19 = IN.ase_texcoord5.xy * float2( 1,1 ) + float2( 0,0 );
-				float temp_output_31_0_g19 = ( 1.0 / _FluidHeight_TexelSize.z );
-				float2 appendResult36_g19 = (float2(( texCoord1_g19.x + temp_output_31_0_g19 ) , texCoord1_g19.y));
-				float simplePerlin2D64_g19 = snoise( texCoord1_g19*40.0 );
-				simplePerlin2D64_g19 = simplePerlin2D64_g19*0.5 + 0.5;
-				float temp_output_71_0_g19 = ( -simplePerlin2D64_g19 * _EdgeNoise );
-				float2 appendResult37_g19 = (float2(( texCoord1_g19.x - temp_output_31_0_g19 ) , texCoord1_g19.y));
-				float3 appendResult48_g19 = (float3(_Vector0.x , _Vector0.y , ( ( ( ( tex2D( _FluidHeight, appendResult36_g19 ).r + temp_output_71_0_g19 ) * 5.0 ) - ( ( tex2D( _FluidHeight, appendResult37_g19 ).r + temp_output_71_0_g19 ) * 5.0 ) ) * _BumpPower )));
-				float3 normalizeResult50_g19 = normalize( appendResult48_g19 );
-				float2 appendResult40_g19 = (float2(texCoord1_g19.x , ( texCoord1_g19.y + temp_output_31_0_g19 )));
-				float2 appendResult41_g19 = (float2(texCoord1_g19.x , ( texCoord1_g19.y - temp_output_31_0_g19 )));
-				float3 appendResult49_g19 = (float3(_Vector0.y , _Vector0.x , ( ( ( ( tex2D( _FluidHeight, appendResult40_g19 ).r + temp_output_71_0_g19 ) * 5.0 ) - ( ( tex2D( _FluidHeight, appendResult41_g19 ).r + temp_output_71_0_g19 ) * 5.0 ) ) * _BumpPower )));
-				float3 normalizeResult51_g19 = normalize( appendResult49_g19 );
-				float3 temp_output_52_0_g19 = cross( normalizeResult50_g19 , normalizeResult51_g19 );
-				float temp_output_57_0_g19 = ( ( tex2D( _FluidHeight, texCoord1_g19 ).r + temp_output_71_0_g19 ) * 5.0 );
-				float smoothstepResult15_g19 = smoothstep( _EdgeBegin , ( _EdgeBegin + _EdgeRange ) , temp_output_57_0_g19);
-				float dotResult91_g19 = dot( temp_output_52_0_g19 , float3(0,0,1) );
-				float saferPower95_g19 = abs( dotResult91_g19 );
-				float smoothstepResult98_g19 = smoothstep( 0.0 , 0.2 , temp_output_57_0_g19);
+				float2 texCoord1_g23 = IN.ase_texcoord5.xy * float2( 1,1 ) + float2( 0,0 );
+				float temp_output_31_0_g23 = ( 1.0 / _FluidHeight_TexelSize.z );
+				float2 appendResult36_g23 = (float2(( texCoord1_g23.x + temp_output_31_0_g23 ) , texCoord1_g23.y));
+				float simplePerlin2D64_g23 = snoise( texCoord1_g23*40.0 );
+				simplePerlin2D64_g23 = simplePerlin2D64_g23*0.5 + 0.5;
+				float temp_output_71_0_g23 = ( -simplePerlin2D64_g23 * _EdgeNoise );
+				float2 appendResult37_g23 = (float2(( texCoord1_g23.x - temp_output_31_0_g23 ) , texCoord1_g23.y));
+				float3 appendResult48_g23 = (float3(_Vector0.x , _Vector0.y , ( ( ( ( tex2D( _FluidHeight, appendResult36_g23 ).r + temp_output_71_0_g23 ) * 5.0 ) - ( ( tex2D( _FluidHeight, appendResult37_g23 ).r + temp_output_71_0_g23 ) * 5.0 ) ) * _BumpPower )));
+				float3 normalizeResult50_g23 = normalize( appendResult48_g23 );
+				float2 appendResult40_g23 = (float2(texCoord1_g23.x , ( texCoord1_g23.y + temp_output_31_0_g23 )));
+				float2 appendResult41_g23 = (float2(texCoord1_g23.x , ( texCoord1_g23.y - temp_output_31_0_g23 )));
+				float3 appendResult49_g23 = (float3(_Vector0.y , _Vector0.x , ( ( ( ( tex2D( _FluidHeight, appendResult40_g23 ).r + temp_output_71_0_g23 ) * 5.0 ) - ( ( tex2D( _FluidHeight, appendResult41_g23 ).r + temp_output_71_0_g23 ) * 5.0 ) ) * _BumpPower )));
+				float3 normalizeResult51_g23 = normalize( appendResult49_g23 );
+				float3 temp_output_52_0_g23 = cross( normalizeResult50_g23 , normalizeResult51_g23 );
+				float temp_output_57_0_g23 = ( ( tex2D( _FluidHeight, texCoord1_g23 ).r + temp_output_71_0_g23 ) * 5.0 );
+				float smoothstepResult15_g23 = smoothstep( _EdgeBegin , ( _EdgeBegin + _EdgeRange ) , temp_output_57_0_g23);
+				float dotResult91_g23 = dot( temp_output_52_0_g23 , float3(0,0,1) );
+				float saferPower95_g23 = abs( dotResult91_g23 );
+				float smoothstepResult98_g23 = smoothstep( 0.0 , 0.2 , temp_output_57_0_g23);
 				float3 ase_worldBitangent = IN.ase_texcoord6.xyz;
 				float3 tanToWorld0 = float3( WorldTangent.xyz.x, ase_worldBitangent.x, WorldNormal.x );
 				float3 tanToWorld1 = float3( WorldTangent.xyz.y, ase_worldBitangent.y, WorldNormal.y );
 				float3 tanToWorld2 = float3( WorldTangent.xyz.z, ase_worldBitangent.z, WorldNormal.z );
-				float3 tanNormal26_g19 = temp_output_52_0_g19;
-				float3 worldNormal26_g19 = float3(dot(tanToWorld0,tanNormal26_g19), dot(tanToWorld1,tanNormal26_g19), dot(tanToWorld2,tanNormal26_g19));
+				float3 tanNormal26_g23 = temp_output_52_0_g23;
+				float3 worldNormal26_g23 = float3(dot(tanToWorld0,tanNormal26_g23), dot(tanToWorld1,tanNormal26_g23), dot(tanToWorld2,tanNormal26_g23));
 				float2 _Vector1 = float2(0.5,0.5);
-				float4 tex2DNode21_g19 = tex2D( _FluidMatcap, ( ( (mul( unity_WorldToCamera, float4( worldNormal26_g19 , 0.0 ) ).xyz).xy * _Vector1 ) + _Vector1 ) );
-				float lerpResult73_g19 = lerp( ( smoothstepResult15_g19 * (1.0 + (( pow( saferPower95_g19 , 3.0 ) * smoothstepResult98_g19 ) - 0.0) * (0.5 - 1.0) / (1.0 - 0.0)) ) , 1.0 , tex2DNode21_g19.r);
-				float2 texCoord79_g19 = IN.ase_texcoord5.xy * float2( 1,1 ) + float2( 0,0 );
-				float4 tex2DNode78_g19 = tex2D( _DecalColorMap, texCoord79_g19 );
-				float temp_output_58_5 = ( smoothstepResult15_g19 * lerpResult73_g19 * _Opacity * tex2DNode78_g19.a );
-				float3 lerpResult17 = lerp( float3(0,0,1) , temp_output_52_0_g19 , temp_output_58_5);
+				float4 tex2DNode21_g23 = tex2D( _FluidMatcap, ( ( (mul( unity_WorldToCamera, float4( worldNormal26_g23 , 0.0 ) ).xyz).xy * _Vector1 ) + _Vector1 ) );
+				float lerpResult73_g23 = lerp( ( smoothstepResult15_g23 * (1.0 + (( pow( saferPower95_g23 , 3.0 ) * smoothstepResult98_g23 ) - 0.0) * (0.5 - 1.0) / (1.0 - 0.0)) ) , 1.0 , tex2DNode21_g23.r);
+				float2 texCoord79_g23 = IN.ase_texcoord5.xy * float2( 1,1 ) + float2( 0,0 );
+				float4 tex2DNode78_g23 = tex2D( _DecalColorMap, texCoord79_g23 );
+				float temp_output_62_5 = ( smoothstepResult15_g23 * lerpResult73_g23 * tex2DNode78_g23.a );
+				float3 lerpResult17 = lerp( float3(0,0,1) , temp_output_52_0_g23 , temp_output_62_5);
 				
 
 				float3 Normal = lerpResult17;
@@ -2913,7 +2906,6 @@ Shader "FluidSplatTest"
 			float _ShinePower;
 			float _EdgeBegin;
 			float _EdgeRange;
-			float _Opacity;
 			#ifdef ASE_TRANSMISSION
 				float _TransmissionShadow;
 			#endif
@@ -3179,46 +3171,46 @@ Shader "FluidSplatTest"
 				WorldViewDirection = SafeNormalize( WorldViewDirection );
 
 				float2 uv_MainTex = IN.ase_texcoord8.xy * _MainTex_ST.xy + _MainTex_ST.zw;
-				float2 texCoord79_g19 = IN.ase_texcoord8.zw * float2( 1,1 ) + float2( 0,0 );
-				float4 tex2DNode78_g19 = tex2D( _DecalColorMap, texCoord79_g19 );
-				float4 color88_g19 = IsGammaSpace() ? float4(1,1,1,1) : float4(1,1,1,1);
+				float2 texCoord79_g23 = IN.ase_texcoord8.zw * float2( 1,1 ) + float2( 0,0 );
+				float4 tex2DNode78_g23 = tex2D( _DecalColorMap, texCoord79_g23 );
+				float4 color88_g23 = IsGammaSpace() ? float4(1,1,1,1) : float4(1,1,1,1);
 				float2 _Vector0 = float2(2,0);
-				float2 texCoord1_g19 = IN.ase_texcoord8.zw * float2( 1,1 ) + float2( 0,0 );
-				float temp_output_31_0_g19 = ( 1.0 / _FluidHeight_TexelSize.z );
-				float2 appendResult36_g19 = (float2(( texCoord1_g19.x + temp_output_31_0_g19 ) , texCoord1_g19.y));
-				float simplePerlin2D64_g19 = snoise( texCoord1_g19*40.0 );
-				simplePerlin2D64_g19 = simplePerlin2D64_g19*0.5 + 0.5;
-				float temp_output_71_0_g19 = ( -simplePerlin2D64_g19 * _EdgeNoise );
-				float2 appendResult37_g19 = (float2(( texCoord1_g19.x - temp_output_31_0_g19 ) , texCoord1_g19.y));
-				float3 appendResult48_g19 = (float3(_Vector0.x , _Vector0.y , ( ( ( ( tex2D( _FluidHeight, appendResult36_g19 ).r + temp_output_71_0_g19 ) * 5.0 ) - ( ( tex2D( _FluidHeight, appendResult37_g19 ).r + temp_output_71_0_g19 ) * 5.0 ) ) * _BumpPower )));
-				float3 normalizeResult50_g19 = normalize( appendResult48_g19 );
-				float2 appendResult40_g19 = (float2(texCoord1_g19.x , ( texCoord1_g19.y + temp_output_31_0_g19 )));
-				float2 appendResult41_g19 = (float2(texCoord1_g19.x , ( texCoord1_g19.y - temp_output_31_0_g19 )));
-				float3 appendResult49_g19 = (float3(_Vector0.y , _Vector0.x , ( ( ( ( tex2D( _FluidHeight, appendResult40_g19 ).r + temp_output_71_0_g19 ) * 5.0 ) - ( ( tex2D( _FluidHeight, appendResult41_g19 ).r + temp_output_71_0_g19 ) * 5.0 ) ) * _BumpPower )));
-				float3 normalizeResult51_g19 = normalize( appendResult49_g19 );
-				float3 temp_output_52_0_g19 = cross( normalizeResult50_g19 , normalizeResult51_g19 );
+				float2 texCoord1_g23 = IN.ase_texcoord8.zw * float2( 1,1 ) + float2( 0,0 );
+				float temp_output_31_0_g23 = ( 1.0 / _FluidHeight_TexelSize.z );
+				float2 appendResult36_g23 = (float2(( texCoord1_g23.x + temp_output_31_0_g23 ) , texCoord1_g23.y));
+				float simplePerlin2D64_g23 = snoise( texCoord1_g23*40.0 );
+				simplePerlin2D64_g23 = simplePerlin2D64_g23*0.5 + 0.5;
+				float temp_output_71_0_g23 = ( -simplePerlin2D64_g23 * _EdgeNoise );
+				float2 appendResult37_g23 = (float2(( texCoord1_g23.x - temp_output_31_0_g23 ) , texCoord1_g23.y));
+				float3 appendResult48_g23 = (float3(_Vector0.x , _Vector0.y , ( ( ( ( tex2D( _FluidHeight, appendResult36_g23 ).r + temp_output_71_0_g23 ) * 5.0 ) - ( ( tex2D( _FluidHeight, appendResult37_g23 ).r + temp_output_71_0_g23 ) * 5.0 ) ) * _BumpPower )));
+				float3 normalizeResult50_g23 = normalize( appendResult48_g23 );
+				float2 appendResult40_g23 = (float2(texCoord1_g23.x , ( texCoord1_g23.y + temp_output_31_0_g23 )));
+				float2 appendResult41_g23 = (float2(texCoord1_g23.x , ( texCoord1_g23.y - temp_output_31_0_g23 )));
+				float3 appendResult49_g23 = (float3(_Vector0.y , _Vector0.x , ( ( ( ( tex2D( _FluidHeight, appendResult40_g23 ).r + temp_output_71_0_g23 ) * 5.0 ) - ( ( tex2D( _FluidHeight, appendResult41_g23 ).r + temp_output_71_0_g23 ) * 5.0 ) ) * _BumpPower )));
+				float3 normalizeResult51_g23 = normalize( appendResult49_g23 );
+				float3 temp_output_52_0_g23 = cross( normalizeResult50_g23 , normalizeResult51_g23 );
 				float3 tanToWorld0 = float3( WorldTangent.x, WorldBiTangent.x, WorldNormal.x );
 				float3 tanToWorld1 = float3( WorldTangent.y, WorldBiTangent.y, WorldNormal.y );
 				float3 tanToWorld2 = float3( WorldTangent.z, WorldBiTangent.z, WorldNormal.z );
-				float3 tanNormal26_g19 = temp_output_52_0_g19;
-				float3 worldNormal26_g19 = float3(dot(tanToWorld0,tanNormal26_g19), dot(tanToWorld1,tanNormal26_g19), dot(tanToWorld2,tanNormal26_g19));
+				float3 tanNormal26_g23 = temp_output_52_0_g23;
+				float3 worldNormal26_g23 = float3(dot(tanToWorld0,tanNormal26_g23), dot(tanToWorld1,tanNormal26_g23), dot(tanToWorld2,tanNormal26_g23));
 				float2 _Vector1 = float2(0.5,0.5);
-				float4 tex2DNode21_g19 = tex2D( _FluidMatcap, ( ( (mul( unity_WorldToCamera, float4( worldNormal26_g19 , 0.0 ) ).xyz).xy * _Vector1 ) + _Vector1 ) );
-				float temp_output_57_0_g19 = ( ( tex2D( _FluidHeight, texCoord1_g19 ).r + temp_output_71_0_g19 ) * 5.0 );
-				float smoothstepResult15_g19 = smoothstep( _EdgeBegin , ( _EdgeBegin + _EdgeRange ) , temp_output_57_0_g19);
-				float dotResult91_g19 = dot( temp_output_52_0_g19 , float3(0,0,1) );
-				float saferPower95_g19 = abs( dotResult91_g19 );
-				float smoothstepResult98_g19 = smoothstep( 0.0 , 0.2 , temp_output_57_0_g19);
-				float lerpResult73_g19 = lerp( ( smoothstepResult15_g19 * (1.0 + (( pow( saferPower95_g19 , 3.0 ) * smoothstepResult98_g19 ) - 0.0) * (0.5 - 1.0) / (1.0 - 0.0)) ) , 1.0 , tex2DNode21_g19.r);
-				float temp_output_58_5 = ( smoothstepResult15_g19 * lerpResult73_g19 * _Opacity * tex2DNode78_g19.a );
-				float4 lerpResult14 = lerp( ( _Tint * tex2D( _MainTex, uv_MainTex ) ) , ( tex2DNode78_g19 + ( color88_g19 * tex2DNode21_g19.r * _ShinePower ) ) , temp_output_58_5);
+				float4 tex2DNode21_g23 = tex2D( _FluidMatcap, ( ( (mul( unity_WorldToCamera, float4( worldNormal26_g23 , 0.0 ) ).xyz).xy * _Vector1 ) + _Vector1 ) );
+				float temp_output_57_0_g23 = ( ( tex2D( _FluidHeight, texCoord1_g23 ).r + temp_output_71_0_g23 ) * 5.0 );
+				float smoothstepResult15_g23 = smoothstep( _EdgeBegin , ( _EdgeBegin + _EdgeRange ) , temp_output_57_0_g23);
+				float dotResult91_g23 = dot( temp_output_52_0_g23 , float3(0,0,1) );
+				float saferPower95_g23 = abs( dotResult91_g23 );
+				float smoothstepResult98_g23 = smoothstep( 0.0 , 0.2 , temp_output_57_0_g23);
+				float lerpResult73_g23 = lerp( ( smoothstepResult15_g23 * (1.0 + (( pow( saferPower95_g23 , 3.0 ) * smoothstepResult98_g23 ) - 0.0) * (0.5 - 1.0) / (1.0 - 0.0)) ) , 1.0 , tex2DNode21_g23.r);
+				float temp_output_62_5 = ( smoothstepResult15_g23 * lerpResult73_g23 * tex2DNode78_g23.a );
+				float3 lerpResult14 = lerp( (( _Tint * tex2D( _MainTex, uv_MainTex ) )).rgb , (( tex2DNode78_g23 + ( color88_g23 * tex2DNode21_g23.r * _ShinePower ) )).rgb , temp_output_62_5);
 				
-				float3 lerpResult17 = lerp( float3(0,0,1) , temp_output_52_0_g19 , temp_output_58_5);
+				float3 lerpResult17 = lerp( float3(0,0,1) , temp_output_52_0_g23 , temp_output_62_5);
 				
-				float lerpResult19 = lerp( 0.0 , 0.0 , temp_output_58_5);
+				float lerpResult19 = lerp( 0.0 , 0.0 , temp_output_62_5);
 				
 
-				float3 BaseColor = lerpResult14.rgb;
+				float3 BaseColor = lerpResult14;
 				float3 Normal = lerpResult17;
 				float3 Emission = 0;
 				float3 Specular = 0.5;
@@ -3417,7 +3409,6 @@ Shader "FluidSplatTest"
 			float _ShinePower;
 			float _EdgeBegin;
 			float _EdgeRange;
-			float _Opacity;
 			#ifdef ASE_TRANSMISSION
 				float _TransmissionShadow;
 			#endif
@@ -3691,7 +3682,6 @@ Shader "FluidSplatTest"
 			float _ShinePower;
 			float _EdgeBegin;
 			float _EdgeRange;
-			float _Opacity;
 			#ifdef ASE_TRANSMISSION
 				float _TransmissionShadow;
 			#endif
@@ -3889,11 +3879,12 @@ Node;AmplifyShaderEditor.Vector3Node;18;-528,304;Inherit;False;Constant;_Vector0
 Node;AmplifyShaderEditor.LerpOp;17;-208,176;Inherit;False;3;0;FLOAT3;0,0,0;False;1;FLOAT3;0,0,0;False;2;FLOAT;0;False;1;FLOAT3;0
 Node;AmplifyShaderEditor.LerpOp;19;-192,304;Inherit;False;3;0;FLOAT;0;False;1;FLOAT;0;False;2;FLOAT;0;False;1;FLOAT;0
 Node;AmplifyShaderEditor.RangedFloatNode;20;-528,512;Inherit;False;Constant;_Smoothness;Smoothness;2;0;Create;True;0;0;0;False;0;False;0;0;0;0.99;0;1;FLOAT;0
-Node;AmplifyShaderEditor.LerpOp;14;-192,32;Inherit;False;3;0;COLOR;0,0,0,0;False;1;COLOR;0,0,0,0;False;2;FLOAT;0;False;1;COLOR;0
+Node;AmplifyShaderEditor.LerpOp;14;-192,32;Inherit;False;3;0;FLOAT3;0,0,0;False;1;FLOAT3;0,0,0;False;2;FLOAT;0;False;1;FLOAT3;0
 Node;AmplifyShaderEditor.SamplerNode;11;-800,-144;Inherit;True;Property;_MainTex;MainTex;0;0;Create;True;0;0;0;False;0;False;-1;None;None;True;0;False;white;Auto;False;Object;-1;Auto;Texture2D;8;0;SAMPLER2D;;False;1;FLOAT2;0,0;False;2;FLOAT;0;False;3;FLOAT2;0,0;False;4;FLOAT2;0,0;False;5;FLOAT;1;False;6;FLOAT;0;False;7;SAMPLERSTATE;;False;6;COLOR;0;FLOAT;1;FLOAT;2;FLOAT;3;FLOAT;4;FLOAT3;5
 Node;AmplifyShaderEditor.SimpleMultiplyOpNode;39;-496,-224;Inherit;False;2;2;0;COLOR;0,0,0,0;False;1;COLOR;0,0,0,0;False;1;COLOR;0
-Node;AmplifyShaderEditor.ColorNode;38;-736,-368;Inherit;False;Property;_Tint;Tint;11;0;Create;True;0;0;0;False;0;False;0,0,0,0;1,1,1,0;True;True;0;6;COLOR;0;FLOAT;1;FLOAT;2;FLOAT;3;FLOAT;4;FLOAT3;5
-Node;AmplifyShaderEditor.FunctionNode;58;-512,128;Inherit;False;FluidSplat;1;;19;1c0653a8fede64c4889ada40d0572ba1;0;0;4;COLOR;0;FLOAT;4;FLOAT;5;FLOAT3;6
+Node;AmplifyShaderEditor.ColorNode;38;-736,-368;Inherit;False;Property;_Tint;Tint;10;0;Create;True;0;0;0;False;0;False;0,0,0,0;1,1,1,0;True;True;0;6;COLOR;0;FLOAT;1;FLOAT;2;FLOAT;3;FLOAT;4;FLOAT3;5
+Node;AmplifyShaderEditor.FunctionNode;62;-512,128;Inherit;False;FluidSplat;1;;23;1c0653a8fede64c4889ada40d0572ba1;0;0;4;FLOAT3;0;FLOAT;4;FLOAT;5;FLOAT3;6
+Node;AmplifyShaderEditor.SwizzleNode;63;-279.6474,-147.7564;Inherit;False;FLOAT3;0;1;2;3;1;0;COLOR;0,0,0,0;False;1;FLOAT3;0
 Node;AmplifyShaderEditor.TemplateMultiPassMasterNode;1;0,0;Float;False;False;-1;2;UnityEditor.ShaderGraphLitGUI;0;12;New Amplify Shader;94348b07e5e8bab40bd6c8a1e3df54cd;True;ExtraPrePass;0;0;ExtraPrePass;5;False;False;False;False;False;False;False;False;False;False;False;False;True;0;False;;False;True;0;False;;False;False;False;False;False;False;False;False;False;True;False;0;False;;255;False;;255;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;False;True;1;False;;True;3;False;;True;True;0;False;;0;False;;True;4;RenderPipeline=UniversalPipeline;RenderType=Opaque=RenderType;Queue=Geometry=Queue=0;UniversalMaterialType=Lit;True;5;True;12;all;0;False;True;1;1;False;;0;False;;0;1;False;;0;False;;False;False;False;False;False;False;False;False;False;False;False;False;True;0;False;;False;True;True;True;True;True;0;False;;False;False;False;False;False;False;False;True;False;0;False;;255;False;;255;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;False;True;1;False;;True;3;False;;True;True;0;False;;0;False;;True;0;False;False;0;;0;0;Standard;0;False;0
 Node;AmplifyShaderEditor.TemplateMultiPassMasterNode;3;0,0;Float;False;False;-1;2;UnityEditor.ShaderGraphLitGUI;0;12;New Amplify Shader;94348b07e5e8bab40bd6c8a1e3df54cd;True;ShadowCaster;0;2;ShadowCaster;0;False;False;False;False;False;False;False;False;False;False;False;False;True;0;False;;False;True;0;False;;False;False;False;False;False;False;False;False;False;True;False;0;False;;255;False;;255;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;False;True;1;False;;True;3;False;;True;True;0;False;;0;False;;True;4;RenderPipeline=UniversalPipeline;RenderType=Opaque=RenderType;Queue=Geometry=Queue=0;UniversalMaterialType=Lit;True;5;True;12;all;0;False;False;False;False;False;False;False;False;False;False;False;False;True;0;False;;False;False;False;True;False;False;False;False;0;False;;False;False;False;False;False;False;False;False;False;True;1;False;;True;3;False;;False;True;1;LightMode=ShadowCaster;False;False;0;;0;0;Standard;0;False;0
 Node;AmplifyShaderEditor.TemplateMultiPassMasterNode;4;0,0;Float;False;False;-1;2;UnityEditor.ShaderGraphLitGUI;0;12;New Amplify Shader;94348b07e5e8bab40bd6c8a1e3df54cd;True;DepthOnly;0;3;DepthOnly;0;False;False;False;False;False;False;False;False;False;False;False;False;True;0;False;;False;True;0;False;;False;False;False;False;False;False;False;False;False;True;False;0;False;;255;False;;255;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;False;True;1;False;;True;3;False;;True;True;0;False;;0;False;;True;4;RenderPipeline=UniversalPipeline;RenderType=Opaque=RenderType;Queue=Geometry=Queue=0;UniversalMaterialType=Lit;True;5;True;12;all;0;False;False;False;False;False;False;False;False;False;False;False;False;True;0;False;;False;False;False;True;True;False;False;False;0;False;;False;False;False;False;False;False;False;False;False;True;1;False;;False;False;True;1;LightMode=DepthOnly;False;False;0;;0;0;Standard;0;False;0
@@ -3905,18 +3896,19 @@ Node;AmplifyShaderEditor.TemplateMultiPassMasterNode;9;0,0;Float;False;False;-1;
 Node;AmplifyShaderEditor.TemplateMultiPassMasterNode;10;0,0;Float;False;False;-1;2;UnityEditor.ShaderGraphLitGUI;0;12;New Amplify Shader;94348b07e5e8bab40bd6c8a1e3df54cd;True;ScenePickingPass;0;9;ScenePickingPass;0;False;False;False;False;False;False;False;False;False;False;False;False;True;0;False;;False;True;0;False;;False;False;False;False;False;False;False;False;False;True;False;0;False;;255;False;;255;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;False;True;1;False;;True;3;False;;True;True;0;False;;0;False;;True;4;RenderPipeline=UniversalPipeline;RenderType=Opaque=RenderType;Queue=Geometry=Queue=0;UniversalMaterialType=Lit;True;5;True;12;all;0;False;False;False;False;False;False;False;False;False;False;False;False;True;0;False;;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;True;1;LightMode=Picking;False;False;0;;0;0;Standard;0;False;0
 Node;AmplifyShaderEditor.TemplateMultiPassMasterNode;2;96,32;Float;False;True;-1;2;UnityEditor.ShaderGraphLitGUI;0;12;FluidSplatTest;94348b07e5e8bab40bd6c8a1e3df54cd;True;Forward;0;1;Forward;21;False;False;False;False;False;False;False;False;False;False;False;False;True;0;False;;False;True;0;False;;False;False;False;False;False;False;False;False;False;True;False;0;False;;255;False;;255;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;False;True;1;False;;True;3;False;;True;True;0;False;;0;False;;True;4;RenderPipeline=UniversalPipeline;RenderType=Opaque=RenderType;Queue=Geometry=Queue=0;UniversalMaterialType=Lit;True;5;True;12;all;0;False;True;1;1;False;;0;False;;1;1;False;;0;False;;False;False;False;False;False;False;False;False;False;False;False;False;False;False;True;True;True;True;True;0;False;;False;False;False;False;False;False;False;True;False;0;False;;255;False;;255;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;False;True;1;False;;True;3;False;;True;True;0;False;;0;False;;True;1;LightMode=UniversalForward;False;False;0;;0;0;Standard;42;Lighting Model;0;0;Workflow;1;0;Surface;0;0;  Refraction Model;0;0;  Blend;0;0;Two Sided;1;0;Fragment Normal Space,InvertActionOnDeselection;0;0;Forward Only;0;0;Transmission;0;0;  Transmission Shadow;0.5,False,;0;Translucency;0;0;  Translucency Strength;1,False,;0;  Normal Distortion;0.5,False,;0;  Scattering;2,False,;0;  Direct;0.9,False,;0;  Ambient;0.1,False,;0;  Shadow;0.5,False,;0;Cast Shadows;1;0;  Use Shadow Threshold;0;0;Receive Shadows;1;0;Receive SSAO;1;0;GPU Instancing;1;0;LOD CrossFade;1;0;Built-in Fog;1;0;_FinalColorxAlpha;0;0;Meta Pass;1;0;Override Baked GI;0;0;Extra Pre Pass;0;0;Tessellation;0;0;  Phong;0;0;  Strength;0.5,False,;0;  Type;0;0;  Tess;16,False,;0;  Min;10,False,;0;  Max;25,False,;0;  Edge Length;16,False,;0;  Max Displacement;25,False,;0;Write Depth;0;0;  Early Z;0;0;Vertex Position,InvertActionOnDeselection;1;0;Debug Display;0;0;Clear Coat;0;0;0;10;False;True;True;True;True;True;True;True;True;True;False;;False;0
 WireConnection;17;0;18;0
-WireConnection;17;1;58;6
-WireConnection;17;2;58;5
+WireConnection;17;1;62;6
+WireConnection;17;2;62;5
 WireConnection;19;0;20;0
-WireConnection;19;1;58;4
-WireConnection;19;2;58;5
-WireConnection;14;0;39;0
-WireConnection;14;1;58;0
-WireConnection;14;2;58;5
+WireConnection;19;1;62;4
+WireConnection;19;2;62;5
+WireConnection;14;0;63;0
+WireConnection;14;1;62;0
+WireConnection;14;2;62;5
 WireConnection;39;0;38;0
 WireConnection;39;1;11;0
+WireConnection;63;0;39;0
 WireConnection;2;0;14;0
 WireConnection;2;1;17;0
 WireConnection;2;4;19;0
 ASEEND*/
-//CHKSM=BCB1C78602C7C7D69BFC42E24DD8A7DB99B8F0F9
+//CHKSM=E73CAE5DF0FA63F73473EAC819D204D86D9555F9

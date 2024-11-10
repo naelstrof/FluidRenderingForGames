@@ -1,7 +1,10 @@
 {
   "dependencies": {
-    "com.naelstrof.jigglephysics": "https://github.com/naelstrof/UnityJigglePhysics.git#upm",
-    "com.naelstrof.skinnedmeshdecals": "https://github.com/naelstrof/SkinnedMeshDecals.git#v9.0.4",
+    "com.naelstrof-raliv.dynamic-penetration-for-games": "https://github.com/naelstrof/DynamicPenetrationForGames.git#v3.0.7",
+    "com.naelstrof.extensions": "https://github.com/naelstrof/com.naelstrof.extensions.git",
+    "com.naelstrof.jigglephysics": "https://github.com/naelstrof/UnityJigglePhysics.git#v10.0.1",
+    "com.naelstrof.skinnedmeshdecals": "https://github.com/naelstrof/SkinnedMeshDecals.git#v11.0.0",
+    "com.naelstrof.splines": "https://github.com/naelstrof/com.naelstrof.splines.git",
     "com.unity.collab-proxy": "2.5.1",
     "com.unity.ide.rider": "3.0.31",
     "com.unity.ide.visualstudio": "2.0.22",
