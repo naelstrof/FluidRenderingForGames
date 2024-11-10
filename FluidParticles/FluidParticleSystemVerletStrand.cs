@@ -70,7 +70,7 @@ public class FluidParticleSystemVerletStrand : FluidParticleSystem {
         return b + (a - b) * Mathf.Exp(-decay * dt);
     }
 
-    protected override void UpdateParticles() {
+    protected override void UpdateParticles(float deltaTime) {
         float realFriction = 1f - (friction * friction);
         Vector3 pointA = a.TransformPoint(localPointA);
         Vector3 pointB = b.TransformPoint(localPointB);
@@ -143,7 +143,7 @@ public class FluidParticleSystemVerletStrand : FluidParticleSystem {
                 _particles[i].position += vel * realFriction;
             } else {
                 _particles[i].position +=
-                    vel * realFriction + Physics.gravity * (Time.deltaTime * Time.deltaTime * gravityMult);
+                    vel * realFriction + Physics.gravity * (deltaTime * deltaTime * gravityMult);
             }
         }
     }
