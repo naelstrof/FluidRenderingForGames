@@ -88,7 +88,7 @@ public class FluidEmitter : MonoBehaviour {
 
         _velocity = fluidParticleSystemSettings.baseVelocity * _velocityMultiplier;
         var _heightStrength = fluidParticleSystemSettings.heightStrengthBase * _heightStrengthMultiplier;
-        int subParticles = 1 + (int)(_velocity * 8);
+        int subParticles = 5 + (int)(_velocity * 5);
         for (int i = 0; i < subParticles; i++) {
             _fluidParticleSystem.SpawnParticle(
                 transform.position,
