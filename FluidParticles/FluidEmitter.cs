@@ -9,6 +9,8 @@ using UnityEditor;
 namespace FluidRenderingForGames {
     
     public class FluidEmitter : MonoBehaviour {
+
+        public static bool noCollide;
         
         public enum HeightModulate { Add, Clear }
         
@@ -30,7 +32,9 @@ namespace FluidRenderingForGames {
         private float _velocity;
         private float _previousVelocity;
         private float _previousHeightStrength;
+        #if UNITY_EDITOR
         private SceneView targetSceneView;
+        #endif
         private Material decalProjectorAlphaWrite;
         private float _accumulatedTickTime;
         private float _tickTime;
@@ -44,6 +48,7 @@ namespace FluidRenderingForGames {
         }
 
         private void OnFluidCollision(FluidParticleSystem.ParticleCollision particleCollision) {
+            if (noCollide) return;
             var stretch = particleCollision.stretch;
             var bounds =
                 new Vector3(particleCollision.size * fluidParticleSystemSettings.splatSize, stretch.magnitude,

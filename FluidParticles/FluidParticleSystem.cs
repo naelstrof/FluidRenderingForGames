@@ -161,7 +161,7 @@ public abstract class FluidParticleSystem {
             velocity = particleVelocity,
         };
         _particles[_particleSpawnIndex].position +=
-            _particlePhysics[_particleSpawnIndex].velocity * (deltaTime * (1f-subT));
+            _particlePhysics[_particleSpawnIndex].velocity * (deltaTime * (1f-subT)) - _particlePhysics[_particleSpawnIndex].velocity * deltaTime;
         _particlePhysics[_particleSpawnIndex].velocity += Physics.gravity * (deltaTime * (1f-subT));
         _particlePhysics[_particleSpawnIndex].colliding = colliding;
         _particleSpawnIndex = (_particleSpawnIndex + 1) % _particles.Length;
