@@ -103,7 +103,7 @@ namespace FluidRenderingForGames {
             _fluidParticleSystem.Cleanup();
         }
 
-        private void Update() {
+        private void LateUpdate() {
             var tickTime = 0.02f;
             _accumulatedTickTime += Time.deltaTime;
             var queuedTicks = Mathf.Floor(_accumulatedTickTime / tickTime);
