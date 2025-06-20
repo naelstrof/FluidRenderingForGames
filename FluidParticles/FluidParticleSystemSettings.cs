@@ -7,16 +7,16 @@ namespace FluidRenderingForGames {
     //[CreateAssetMenu(fileName = "FluidParticleSystemSettings", menuName = "FluidParticleSystemSettings")]
     public class FluidParticleSystemSettings : ScriptableObject {
 
-        [field: SerializeField] public float baseVelocity { get; private set; }
-        [field: SerializeField] public float particleBaseSize { get; private set; } = 0.1f;
-        [field: SerializeField] public Color color { get; private set; } = Color.white;
-        [field: SerializeField] public float heightStrengthBase { get; private set; } = 0.1f;
-        [field: SerializeField] public float noiseStrength { get; private set; }
-        [field: SerializeField] public float noiseFrequency { get; private set; }
-        [field: SerializeField] public int noiseOctaves { get; private set; }
-        [field: SerializeField] public float splatSize { get; private set; }
-        [field: SerializeField] public Material particleMaterial { get; private set; }
-        [field: SerializeField] public LayerMask decalableHitMask { get; private set; } = ~0;
+        [field: SerializeField] public virtual float baseVelocity { get; private set; }
+        [field: SerializeField] public virtual float particleBaseSize { get; private set; } = 0.1f;
+        [field: SerializeField] public virtual Color color { get; private set; } = Color.white;
+        [field: SerializeField] public virtual float heightStrengthBase { get; private set; } = 0.1f;
+        [field: SerializeField] public virtual float noiseStrength { get; private set; }
+        [field: SerializeField] public virtual float noiseFrequency { get; private set; }
+        [field: SerializeField] public virtual int noiseOctaves { get; private set; }
+        [field: SerializeField] public virtual float splatSize { get; private set; }
+        [field: SerializeField] public virtual Material particleMaterial { get; private set; }
+        [field: SerializeField] public virtual LayerMask decalableHitMask { get; private set; } = ~0;
 
         public void SetData(float? baseVelocity = null,
             float? particleBaseSize = null,
