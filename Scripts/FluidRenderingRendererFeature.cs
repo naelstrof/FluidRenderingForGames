@@ -1,4 +1,9 @@
+using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule.Util;
 using UnityEngine.Rendering.Universal;
 #if UNITY_EDITOR
 using UnityEditor;
@@ -6,9 +11,149 @@ using UnityEditor;
 
 namespace FluidRenderingForGames {
 public class FluidRenderingRendererFeature : ScriptableRendererFeature {
+    private static List<FluidParticleSystem> systems = new();
+
+    public static void AddParticleSystem(FluidParticleSystem system) {
+        systems.Add(system);
+    }
+
+    public static void RemoveParticleSystem(FluidParticleSystem system) {
+        systems.Remove(system);
+    }
+
+    private class FluidData : ContextItem {
+        public TextureHandle heightTexture;
+        public TextureHandle fluidColorTexture;
+
+        public void Init(RenderGraph renderGraph, TextureDesc targetDescriptor) {
+            var heightDesc = targetDescriptor;
+            heightDesc.depthBufferBits = (int)DepthBits.None;
+            heightDesc.colorFormat = GraphicsFormat.R32_SFloat;
+            heightDesc.name = "_FluidHeightBuffer";
+            renderGraph.CreateTextureIfInvalid(in heightDesc, ref heightTexture);
+            
+            var fluidDesc = targetDescriptor;
+            fluidDesc.depthBufferBits = (int)DepthBits.None;
+            fluidDesc.colorFormat = GraphicsFormat.R8G8B8A8_SRGB;
+            fluidDesc.name = "_FluidColorBuffer";
+            renderGraph.CreateTextureIfInvalid(in fluidDesc, ref fluidColorTexture);
+        }
+
+        public override void Reset() {
+            heightTexture = TextureHandle.nullHandle;
+            fluidColorTexture = TextureHandle.nullHandle;
+        }
+    }
+    private class FluidHeightPass : ScriptableRenderPass {
+        private const string outputName = "_FluidHeightBuffer";
+        private int outputId = Shader.PropertyToID(outputName);
+
+
+        public FluidHeightPass(RenderPassEvent renderPassEvent) {
+            this.renderPassEvent = renderPassEvent;
+            requiresIntermediateTexture = true;
+        }
+
+        public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData) {
+            using (var builder = renderGraph.AddRasterRenderPass<FluidData>("FluidRenderHeightPass", out var passData)) {
+                UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
+                var colorDesc = renderGraph.GetTextureDesc(resourceData.cameraOpaqueTexture);
+                passData = frameData.GetOrCreate<FluidData>();
+                passData.Init(renderGraph, colorDesc);
+                
+                // Setup as a render target via UseTextureFragment and UseTextureFragmentDepth, which are the equivalent of using the old cmd.SetRenderTarget(color,depth)
+                builder.SetRenderAttachment(passData.heightTexture, 0);
+                builder.SetRenderAttachmentDepth(resourceData.cameraDepthTexture, AccessFlags.Read);
+
+                // Assign the ExecutePass function to the render pass delegate, which will be called by the render graph when executing the pass.
+                builder.SetRenderFunc(static (FluidData data, RasterGraphContext context) => ExecutePass(data, context));
+                builder.SetGlobalTextureAfterPass(in passData.heightTexture, outputId);
+            }
+        }
+        
+        static void ExecutePass(FluidData data, RasterGraphContext context) {
+            context.cmd.ClearRenderTarget(RTClearFlags.Color, Color.black, 1,0);
+            foreach (var system in systems) {
+                system.RenderHeight(context.cmd);
+            }
+        }
+
+    }
+    
+    private class FluidColorPass : ScriptableRenderPass {
+        private const string outputName = "_FluidColorBuffer";
+        private int outputId = Shader.PropertyToID(outputName);
+
+        public FluidColorPass(RenderPassEvent renderPassEvent) {
+            this.renderPassEvent = renderPassEvent;
+        }
+
+        public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData) {
+            using (var builder = renderGraph.AddRasterRenderPass<FluidData>("FluidRenderColorPass", out var passData)) {
+                UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
+                var source = resourceData.cameraOpaqueTexture;
+                var colorDesc = renderGraph.GetTextureDesc(source);
+                passData = frameData.GetOrCreate<FluidData>();
+                passData.Init(renderGraph, colorDesc);
+                // Setup as a render target via UseTextureFragment and UseTextureFragmentDepth, which are the equivalent of using the old cmd.SetRenderTarget(color,depth)
+                builder.SetRenderAttachment(passData.fluidColorTexture, 0);
+                builder.SetRenderAttachmentDepth(resourceData.cameraDepthTexture, AccessFlags.Read);
+
+                // Assign the ExecutePass function to the render pass delegate, which will be called by the render graph when executing the pass.
+                builder.SetRenderFunc(static (FluidData data, RasterGraphContext context) => ExecutePass(data, context));
+                builder.SetGlobalTextureAfterPass(in passData.fluidColorTexture, outputId);
+            }
+        }
+        
+        static void ExecutePass(FluidData data, RasterGraphContext context) {
+            context.cmd.ClearRenderTarget(RTClearFlags.Color, Color.clear, 1,0);
+            foreach (var system in systems) {
+                system.RenderColor(context.cmd);
+            }
+        }
+    }
+    
+    private class FluidBlitPass : ScriptableRenderPass {
+        private Material material;
+        
+        public FluidBlitPass(RenderPassEvent renderPassEvent, Material material) {
+            this.material = material;
+            this.renderPassEvent = renderPassEvent;
+            requiresIntermediateTexture = true;
+        }
+
+        public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData) {
+            UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
+            if (resourceData.isActiveTargetBackBuffer) {
+                Debug.LogError($"Skipping render pass. FluidRenderingRendererFeature requires an intermediate ColorTexture, we can't use the BackBuffer as a texture input.");
+                return;
+            }
+            var source = resourceData.activeColorTexture;
+            var destinationDesc = renderGraph.GetTextureDesc(source);
+            destinationDesc.name = $"CameraColor-FluidRender";
+            destinationDesc.clearBuffer = false;
+            
+            TextureHandle destination = renderGraph.CreateTexture(destinationDesc);
+            
+            var fluidData = frameData.Get<FluidData>();
+            if (fluidData == null) {
+                return;
+            }
+            RenderGraphUtils.BlitMaterialParameters para = new(fluidData.heightTexture, destination, material, 0);
+
+            using (var builder = renderGraph.AddBlitPass(para, passName: "FluidBlitPass", returnBuilder: true)) {
+                builder.UseAllGlobalTextures(true);
+            }
+            resourceData.cameraColor = destination;
+        }
+    }
+
     [SerializeField] private Material fullscreenBlitMaterial;
     [SerializeField] private Texture fluidMatcap;
-    private FluidPass _fluidPass;
+    
+    private FluidHeightPass _fluidHeightPass;
+    private FluidColorPass _fluidColorPass;
+    private FluidBlitPass _fluidBlitPass;
 
     public override void Create() {
 #if UNITY_EDITOR
@@ -17,8 +162,9 @@ public class FluidRenderingRendererFeature : ScriptableRendererFeature {
             return;
         }
 #endif
-
-        _fluidPass = new FluidPass(RenderPassEvent.BeforeRenderingPostProcessing, fullscreenBlitMaterial);
+        _fluidHeightPass = new FluidHeightPass(RenderPassEvent.BeforeRenderingPostProcessing);
+        _fluidColorPass = new FluidColorPass(RenderPassEvent.BeforeRenderingPostProcessing);
+        _fluidBlitPass = new FluidBlitPass(RenderPassEvent.BeforeRenderingPostProcessing, fullscreenBlitMaterial);
         Shader.SetGlobalTexture("_FluidMatcap", fluidMatcap);
     }
 
@@ -27,39 +173,27 @@ public class FluidRenderingRendererFeature : ScriptableRendererFeature {
         SerializedObject obj = new SerializedObject(this);
         var blitMat = obj.FindProperty(nameof(fullscreenBlitMaterial));
         if (blitMat.objectReferenceValue == null) {
-            blitMat.objectReferenceValue =
-                AssetDatabase.LoadAssetAtPath<Material>(
-                    AssetDatabase.GUIDToAssetPath("e6cb23922d304c94e89fd2de80c7293a"));
+            blitMat.objectReferenceValue = AssetDatabase.LoadAssetAtPath<Material>( AssetDatabase.GUIDToAssetPath("e6cb23922d304c94e89fd2de80c7293a"));
             obj.ApplyModifiedPropertiesWithoutUndo();
         }
     }
 #endif
 
-
-
-    public override void SetupRenderPasses(ScriptableRenderer renderer, in RenderingData renderingData) {
-        if (renderingData.cameraData.cameraType != CameraType.Game &&
-            renderingData.cameraData.cameraType != CameraType.SceneView) {
-            return;
-        }
-
-        _fluidPass.ConfigureInput(ScriptableRenderPassInput.Color);
-        _fluidPass.SetTarget(renderer.cameraColorTargetHandle, renderer.cameraDepthTargetHandle);
-    }
-
     public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData) {
-        if (renderingData.cameraData.cameraType != CameraType.Game &&
-            renderingData.cameraData.cameraType != CameraType.SceneView) {
+        if (renderingData.cameraData.cameraType != CameraType.Game && renderingData.cameraData.cameraType != CameraType.SceneView) {
             return;
         }
 
-        renderer.EnqueuePass(_fluidPass);
+        renderer.EnqueuePass(_fluidColorPass);
+        renderer.EnqueuePass(_fluidHeightPass);
+        renderer.EnqueuePass(_fluidBlitPass);
     }
 
 
     protected override void Dispose(bool disposing) {
-        _fluidPass?.Dispose();
-        _fluidPass = null;
+        _fluidHeightPass = null;
+        _fluidColorPass = null;
+        _fluidBlitPass = null;
     }
 
 }

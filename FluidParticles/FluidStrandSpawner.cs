@@ -27,7 +27,7 @@ public class FluidStrandSpawner : MonoBehaviour {
     private void OnDisable() {
         for (int i = 0; i < strandAnchors.Count; i++) {
             var strandAnchor = strandAnchors[i];
-            FluidPass.RemoveParticleSystem(strandAnchor.strand);
+            FluidRenderingRendererFeature.RemoveParticleSystem(strandAnchor.strand);
             strandAnchor.strand?.Cleanup();
             strandAnchor.strand = null;
             strandAnchors[i] = strandAnchor;
@@ -39,7 +39,7 @@ public class FluidStrandSpawner : MonoBehaviour {
             strandAnchors[i].strand?.SetLocalPointA(strandAnchors[i].position);
             if ((strandAnchors[i].strand?.GetBroken() ?? false) && Time.time - strandAnchors[i].strand.GetTimeBroken() >
                 FluidParticleSystemVerletStrand.fadeoutTime) {
-                FluidPass.RemoveParticleSystem(strandAnchors[i].strand);
+                FluidRenderingRendererFeature.RemoveParticleSystem(strandAnchors[i].strand);
                 strandAnchors[i].strand.Cleanup();
                 var strand = strandAnchors[i];
                 strand.strand = null;
@@ -83,7 +83,7 @@ public class FluidStrandSpawner : MonoBehaviour {
                 anchor.strand = new FluidParticleSystemVerletStrand(selfCollider.transform, anchor.position,
                     other.transform, other.transform.InverseTransformPoint(anchorPoint), particleMaterial,
                     fluidParticleSystemSettings, decalableHitMask);
-                FluidPass.AddParticleSystem(anchor.strand);
+                FluidRenderingRendererFeature.AddParticleSystem(anchor.strand);
                 OnFluidCollision(new FluidParticleSystem.ParticleCollision() {
                     collider = other,
                     color = fluidParticleSystemSettings.color,

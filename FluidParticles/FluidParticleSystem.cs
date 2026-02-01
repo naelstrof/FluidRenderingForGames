@@ -198,11 +198,11 @@ public abstract class FluidParticleSystem {
         lightProbeSampleDirections = new [] { Vector3.up, Vector3.down };
     }
 
-    public void RenderHeight(CommandBuffer buffer) {
+    public void RenderHeight(RasterCommandBuffer buffer) {
         buffer.DrawProcedural(Matrix4x4.identity, _material, 1, MeshTopology.Triangles, 6, _particles.Length, _materialPropertyBlock);
     }
 
-    public void RenderColor(CommandBuffer buffer) {
+    public void RenderColor(RasterCommandBuffer buffer) {
         LightProbes.GetInterpolatedProbe(lastEmittedPosition, null, out SphericalHarmonicsL2 probe);
         probe.Evaluate(lightProbeSampleDirections, lightProbeOutputColors);
         var up = lightProbeOutputColors[0];
