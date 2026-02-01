@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   <baseVelocity>k__BackingField: 3
   <particleBaseSize>k__BackingField: 0.1
-  <color>k__BackingField: {r: 0, g: 0.46707344, b: 1, a: 0.5}
+  <color>k__BackingField: {r: 0, g: 0, b: 1, a: 0.5019608}
   <heightStrengthBase>k__BackingField: 0.03
   <noiseStrength>k__BackingField: 0.2
   <noiseFrequency>k__BackingField: 3
