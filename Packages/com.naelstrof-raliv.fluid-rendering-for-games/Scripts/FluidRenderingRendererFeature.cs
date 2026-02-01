@@ -5,6 +5,7 @@ using UnityEngine.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.Rendering.RenderGraphModule.Util;
 using UnityEngine.Rendering.Universal;
+using UnityEngine.Rendering.Universal.Internal;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -49,6 +50,10 @@ public class FluidRenderingRendererFeature : ScriptableRendererFeature {
         private int outputId = Shader.PropertyToID(outputName);
 
 
+        public void Setup() {
+            ConfigureInput(ScriptableRenderPassInput.Depth);
+        }
+        
         public FluidHeightPass(RenderPassEvent renderPassEvent) {
             this.renderPassEvent = renderPassEvent;
             requiresIntermediateTexture = true;
@@ -86,6 +91,10 @@ public class FluidRenderingRendererFeature : ScriptableRendererFeature {
 
         public FluidColorPass(RenderPassEvent renderPassEvent) {
             this.renderPassEvent = renderPassEvent;
+        }
+
+        public void Setup() {
+            ConfigureInput(ScriptableRenderPassInput.Depth | ScriptableRenderPassInput.Normal);
         }
 
         public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData) {
@@ -184,6 +193,12 @@ public class FluidRenderingRendererFeature : ScriptableRendererFeature {
             return;
         }
 
+        if (UniversalRenderer.IsOffscreenDepthTexture(ref renderingData.cameraData)) {
+            return;
+        }
+
+        _fluidColorPass.Setup();
+        _fluidHeightPass.Setup();
         renderer.EnqueuePass(_fluidColorPass);
         renderer.EnqueuePass(_fluidHeightPass);
         renderer.EnqueuePass(_fluidBlitPass);
