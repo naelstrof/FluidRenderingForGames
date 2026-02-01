@@ -16,11 +16,6 @@ namespace FluidRenderingForGames {
         
         internal static Material sourceDecalProjectorAlphaWrite;
 
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-        static void LoadDecalProjectorAlphaWrite() {
-            sourceDecalProjectorAlphaWrite = Resources.Load<Material>("SphereProjectorAlphaWrite");
-        }
-
         [SerializeField] private FluidParticleSystemSettings fluidParticleSystemSettings;
         [SerializeField, Range(0f, 1f)] private float _velocityMultiplier = 1f;
         [SerializeField, Range(0f, 1f)] private float _heightStrengthMultiplier = 1f;
@@ -35,7 +30,6 @@ namespace FluidRenderingForGames {
         #if UNITY_EDITOR
         private SceneView targetSceneView;
         #endif
-        private Material decalProjectorAlphaWrite;
         private float _accumulatedTickTime;
         private float _tickTime;
 
@@ -43,8 +37,7 @@ namespace FluidRenderingForGames {
             _fluidParticleSystem = new FluidParticleSystemEuler(fluidParticleSystemSettings.particleMaterial,
                 fluidParticleSystemSettings, fluidParticleSystemSettings.decalableHitMask);
             _fluidParticleSystem.particleCollisionEvent += OnFluidCollision;
-            FluidPass.AddParticleSystem(_fluidParticleSystem);
-            decalProjectorAlphaWrite = Instantiate(sourceDecalProjectorAlphaWrite);
+            FluidRenderingRendererFeature.AddParticleSystem(_fluidParticleSystem);
         }
 
         private void OnFluidCollision(FluidParticleSystem.ParticleCollision particleCollision) {
@@ -60,14 +53,9 @@ namespace FluidRenderingForGames {
             //    Color.red,
             //    0.5f
             //    );
-            decalProjectorAlphaWrite.color = particleCollision.color;
             PaintDecal.QueueDecal(particleCollision.collider,
-                decalProjectorAlphaWrite,
-                new DecalProjection(
-                    particleCollision.position,
-                    rotation,
-                    bounds * 1.5f
-                )
+                new DecalProjector(DecalProjectorType.SphereAlpha, particleCollision.color),
+                new DecalProjection(particleCollision.position, rotation, bounds * 1.5f )
             );
             if (_heightModulate == HeightModulate.Add) {
                 PaintDecal.QueueDecal(particleCollision.collider,
@@ -98,7 +86,7 @@ namespace FluidRenderingForGames {
         }
         
         private void OnDisable() {
-            FluidPass.RemoveParticleSystem(_fluidParticleSystem);
+            FluidRenderingRendererFeature.RemoveParticleSystem(_fluidParticleSystem);
             _fluidParticleSystem.particleCollisionEvent -= OnFluidCollision;
             _fluidParticleSystem.Cleanup();
         }
