@@ -171,9 +171,9 @@ public class FluidRenderingRendererFeature : ScriptableRendererFeature {
             return;
         }
 #endif
-        _fluidHeightPass = new FluidHeightPass(RenderPassEvent.BeforeRenderingPostProcessing);
-        _fluidColorPass = new FluidColorPass(RenderPassEvent.BeforeRenderingPostProcessing);
-        _fluidBlitPass = new FluidBlitPass(RenderPassEvent.BeforeRenderingPostProcessing, fullscreenBlitMaterial);
+        _fluidHeightPass = new FluidHeightPass(RenderPassEvent.AfterRenderingTransparents);
+        _fluidColorPass = new FluidColorPass(RenderPassEvent.AfterRenderingTransparents);
+        _fluidBlitPass = new FluidBlitPass(RenderPassEvent.AfterRenderingTransparents, fullscreenBlitMaterial);
         Shader.SetGlobalTexture("_FluidMatcap", fluidMatcap);
     }
 
