@@ -10,16 +10,12 @@ namespace FluidRenderingForGames {
     
     public class FluidEmitter : MonoBehaviour {
 
-        public static bool noCollide;
-        
-        public enum HeightModulate { Add, Clear }
         
         internal static Material sourceDecalProjectorAlphaWrite;
 
         [SerializeField] private FluidParticleSystemSettings fluidParticleSystemSettings;
         [SerializeField, Range(0f, 1f)] private float _velocityMultiplier = 1f;
         [SerializeField, Range(0f, 1f)] private float _heightStrengthMultiplier = 1f;
-        [SerializeField] private HeightModulate _heightModulate;
 
         private FluidParticleSystem _fluidParticleSystem;
         private Vector3 _previousPosition;
@@ -41,48 +37,7 @@ namespace FluidRenderingForGames {
         }
 
         private void OnFluidCollision(FluidParticleSystem.ParticleCollision particleCollision) {
-            if (noCollide) return;
-            var stretch = particleCollision.stretch;
-            var bounds =
-                new Vector3(particleCollision.size * fluidParticleSystemSettings.splatSize, stretch.magnitude,
-                    particleCollision.size * 6f * fluidParticleSystemSettings.splatSize); // the magic number is depth for misaligned colliders
-            var rotation = Quaternion.LookRotation(-particleCollision.normal, stretch);
-            //Debug.DrawLine(
-            //    particleCollision.position-rotation*Vector3.up*stretch.magnitude,
-            //    particleCollision.position+rotation*Vector3.up*stretch.magnitude,
-            //    Color.red,
-            //    0.5f
-            //    );
-            PaintDecal.QueueDecal(particleCollision.collider,
-                new DecalProjector(DecalProjectorType.SphereAlpha, particleCollision.color),
-                new DecalProjection(particleCollision.position, rotation, bounds * 1.5f )
-            );
-            if (_heightModulate == HeightModulate.Add) {
-                PaintDecal.QueueDecal(particleCollision.collider,
-                    new DecalProjector(DecalProjectorType.SphereAdditive,
-                        new Color(particleCollision.heightStrength, 0f, 0f, 1f)),
-                    new DecalProjection(particleCollision.position, rotation, bounds),
-                    new DecalSettings(
-                        textureName: "_FluidHeight",
-                        renderTextureFormat: RenderTextureFormat.RFloat,
-                        renderTextureReadWrite: RenderTextureReadWrite.Linear,
-                        dilation: DilationType.Additive
-                    )
-                );
-            }
-            if (_heightModulate == HeightModulate.Clear) {
-                PaintDecal.QueueDecal(particleCollision.collider,
-                    new DecalProjector(DecalProjectorType.SphereAlpha,
-                        new Color(0f, 0f, 0f, 1f)),
-                    new DecalProjection(particleCollision.position, rotation, bounds),
-                    new DecalSettings(
-                        textureName: "_FluidHeight",
-                        renderTextureFormat: RenderTextureFormat.RFloat,
-                        renderTextureReadWrite: RenderTextureReadWrite.Linear,
-                        dilation: DilationType.Additive
-                    )
-                );
-            }
+            fluidParticleSystemSettings.OnFluidCollision(particleCollision);
         }
         
         private void OnDisable() {
