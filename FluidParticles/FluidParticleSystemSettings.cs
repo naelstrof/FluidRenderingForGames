@@ -69,7 +69,7 @@ namespace FluidRenderingForGames {
                     new DecalProjection(particleCollision.position, rotation, bounds),
                     new DecalSettings(
                         textureName: "_FluidHeight",
-                        renderTextureFormat: RenderTextureFormat.RFloat,
+                        renderTextureFormat: RenderTextureFormat.R16,
                         renderTextureReadWrite: RenderTextureReadWrite.Linear,
                         dilation: DilationType.Additive
                     )
@@ -82,7 +82,7 @@ namespace FluidRenderingForGames {
                     new DecalProjection(particleCollision.position, rotation, bounds),
                     new DecalSettings(
                         textureName: "_FluidHeight",
-                        renderTextureFormat: RenderTextureFormat.RFloat,
+                        renderTextureFormat: RenderTextureFormat.R16,
                         renderTextureReadWrite: RenderTextureReadWrite.Linear,
                         dilation: DilationType.Additive
                     )
