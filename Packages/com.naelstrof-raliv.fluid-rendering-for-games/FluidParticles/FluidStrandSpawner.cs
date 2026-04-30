@@ -65,7 +65,7 @@ public class FluidStrandSpawner : MonoBehaviour {
             projection,
             new DecalSettings(
                 textureName: "_FluidHeight",
-                renderTextureFormat: RenderTextureFormat.RFloat,
+                renderTextureFormat: RenderTextureFormat.R16,
                 renderTextureReadWrite: RenderTextureReadWrite.Linear,
                 dilation: DilationType.Additive
             )

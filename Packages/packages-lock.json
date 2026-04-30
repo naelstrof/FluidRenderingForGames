@@ -15,7 +15,7 @@
       "depth": 0,
       "source": "embedded",
       "dependencies": {
-        "com.naelstrof.skinnedmeshdecals": "11.0.0"
+        "com.naelstrof.skinnedmeshdecals": "12.0.0"
       }
     },
     "com.naelstrof.extensions": {
@@ -33,11 +33,11 @@
       "hash": "4dbfd8f4373b1ca578078abfeca8adb88e0bc615"
     },
     "com.naelstrof.skinnedmeshdecals": {
-      "version": "https://github.com/naelstrof/SkinnedMeshDecals.git#v11.0.11",
+      "version": "https://github.com/naelstrof/SkinnedMeshDecals.git#v12.0.0",
       "depth": 0,
       "source": "git",
       "dependencies": {},
-      "hash": "273ec08820ecffd96b3bbe3a0daa397ec6d2e96e"
+      "hash": "0d7b041acf9e8b63844a3fc87badece0d76e82ea"
     },
     "com.naelstrof.splines": {
       "version": "https://github.com/naelstrof/com.naelstrof.splines.git",
