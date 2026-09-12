@@ -121,39 +121,64 @@ public class FluidRenderingRendererFeature : ScriptableRendererFeature {
         }
     }
     
-    private class FluidBlitPass : ScriptableRenderPass {
-        private Material material;
-        
-        public FluidBlitPass(RenderPassEvent renderPassEvent, Material material) {
-            this.material = material;
-            this.renderPassEvent = renderPassEvent;
-            requiresIntermediateTexture = true;
-        }
-
-        public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData) {
-            UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
-            if (resourceData.isActiveTargetBackBuffer) {
-                Debug.LogError($"Skipping render pass. FluidRenderingRendererFeature requires an intermediate ColorTexture, we can't use the BackBuffer as a texture input.");
-                return;
-            }
-            var source = resourceData.activeColorTexture;
-            var destinationDesc = renderGraph.GetTextureDesc(source);
-            destinationDesc.name = $"CameraColor-FluidRender";
-            destinationDesc.clearBuffer = false;
-            
-            TextureHandle destination = renderGraph.CreateTexture(destinationDesc);
-            
-            var fluidData = frameData.Get<FluidData>();
-            if (fluidData == null) {
-                return;
-            }
-            RenderGraphUtils.BlitMaterialParameters para = new(fluidData.heightTexture, destination, material, 0);
-
-            using (var builder = renderGraph.AddBlitPass(para, passName: "FluidBlitPass", returnBuilder: true)) {
-                builder.UseAllGlobalTextures(true);
-            }
-            resourceData.cameraColor = destination;
-        }
+    private class FluidBlitPass : ScriptableRenderPass {                                                                                                                                                                       
+        private Material material;                                                                                                                                                                                             
+        private int fluidColorBufferID = Shader.PropertyToID("_FluidColorBuffer");                                                                                                                                             
+        private int cameraColorBufferID = Shader.PropertyToID("_CameraColorBuffer");                                                                                                                                           
+                                                                                                                                                                                                                               
+        public FluidBlitPass(RenderPassEvent renderPassEvent, Material material) {                                                                                                                                             
+            this.material = material;                                                                                                                                                                                          
+            this.renderPassEvent = renderPassEvent;                                                                                                                                                                            
+            requiresIntermediateTexture = true;                                                                                                                                                                                
+        }                                                                                                                                                                                                                      
+                                                                                                                                                                                                                               
+        class PassData                                                                                                                                                                                                         
+        {                                                                                                                                                                                                                      
+            public TextureHandle src;                                                                                                                                                                                          
+            public TextureHandle cameraColorIn;                                                                                                                                                                                
+            public TextureHandle dst;                                                                                                                                                                                          
+            public TextureHandle fluidColorBuffer;                                                                                                                                                                             
+            public Material mat;                                                                                                                                                                                               
+        }                                                                                                                                                                                                                      
+        public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData) {                                                                                                                          
+            UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();                                                                                                                                       
+            if (resourceData.isActiveTargetBackBuffer) {                                                                                                                                                                       
+                Debug.LogError($"Skipping render pass. FluidRenderingRendererFeature requires an intermediate ColorTexture, we can't use the BackBuffer as a texture input.");                                                 
+                return;                                                                                                                                                                                                        
+            }                                                                                                                                                                                                                  
+            var source = resourceData.activeColorTexture;                                                                                                                                                                      
+            var destinationDesc = renderGraph.GetTextureDesc(source);                                                                                                                                                          
+            destinationDesc.name = $"CameraColor-FluidRender";                                                                                                                                                                 
+            destinationDesc.clearBuffer = false;                                                                                                                                                                               
+                                                                                                                                                                                                                               
+            TextureHandle destination = renderGraph.CreateTexture(destinationDesc);                                                                                                                                            
+                                                                                                                                                                                                                               
+            var fluidData = frameData.Get<FluidData>();                                                                                                                                                                        
+            if (fluidData == null) {                                                                                                                                                                                           
+                return;                                                                                                                                                                                                        
+            }                                                                                                                                                                                                                  
+            using var builder = renderGraph.AddRasterRenderPass<PassData>("FluidBlitPass", out var passData);                                                                                                                  
+            passData.src = fluidData.heightTexture;          // or source, depending on your shader                                                                                                                            
+            passData.cameraColorIn = resourceData.activeColorTexture;                                                                                                                                                          
+            passData.dst = destination;                                                                                                                                                                                        
+            passData.fluidColorBuffer = fluidData.fluidColorTexture;                                                                                                                                                           
+            passData.mat = material;                                                                                                                                                                                           
+                                                                                                                                                                                                                               
+            builder.UseTexture(passData.src);                                                                                                                                                                                  
+            builder.UseTexture(passData.cameraColorIn);                                                                                                                                                                        
+            builder.UseTexture(passData.fluidColorBuffer);                                                                                                                                                                     
+            builder.SetRenderAttachment(passData.dst, 0);                                                                                                                                                                      
+                                                                                                                                                                                                                               
+            builder.SetRenderFunc((PassData data, RasterGraphContext ctx) =>                                                                                                                                                   
+            {                                                                                                                                                                                                                  
+                data.mat.SetTexture(fluidColorBufferID, data.fluidColorBuffer);                                                                                                                                                
+                data.mat.SetTexture(cameraColorBufferID, data.cameraColorIn);                                                                                                                                                  
+                // Fullscreen draw/blit                                                                                                                                                                                        
+                Blitter.BlitTexture(ctx.cmd, data.src, Vector4.one, data.mat, 0);                                                                                                                                              
+            });                                                                                                                                                                                                                
+                                                                                                                                                                                                                               
+            resourceData.cameraColor = destination;                                                                                                                                                                            
+        }                                                                                                                                                                                                                      
     }
 
     [SerializeField] private Material fullscreenBlitMaterial;
